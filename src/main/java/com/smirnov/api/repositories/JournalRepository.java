@@ -1,8 +1,8 @@
 package com.smirnov.api.repositories;
 
-import com.example.automationlib.entities.Client;
-import com.example.automationlib.entities.Book;
-import com.example.automationlib.entities.Record;
+import com.smirnov.api.entities.Client;
+import com.smirnov.api.entities.Book;
+import com.smirnov.api.entities.Record;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

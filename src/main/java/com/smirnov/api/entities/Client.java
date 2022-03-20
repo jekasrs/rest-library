@@ -2,7 +2,7 @@ package com.smirnov.api.entities;
 
 import javax.persistence.*;
 
-import com.example.automationlib.models.ClientView;
+import com.smirnov.api.models.ClientView;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import org.springframework.security.core.GrantedAuthority;

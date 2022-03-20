@@ -1,12 +1,12 @@
 package com.smirnov.api.services;
 
-import com.example.automationlib.entities.Book;
-import com.example.automationlib.entities.Client;
-import com.example.automationlib.entities.TypeBook;
-import com.example.automationlib.entities.Record;
-import com.example.automationlib.exceptions.RecordIllegalOptions;
-import com.example.automationlib.exceptions.RecordNotFound;
-import com.example.automationlib.repositories.JournalRepository;
+import com.smirnov.api.entities.Book;
+import com.smirnov.api.entities.Client;
+import com.smirnov.api.entities.TypeBook;
+import com.smirnov.api.entities.Record;
+import com.smirnov.api.exceptions.RecordIllegalOptions;
+import com.smirnov.api.exceptions.RecordNotFound;
+import com.smirnov.api.repositories.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

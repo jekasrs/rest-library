@@ -1,14 +1,14 @@
 package com.smirnov.api.services;
 
-import com.example.automationlib.entities.Client;
-import com.example.automationlib.entities.Role;
-import com.example.automationlib.exceptions.ClientAlreadyExist;
-import com.example.automationlib.exceptions.ClientBlankNameException;
-import com.example.automationlib.exceptions.ClientIllegalSymbols;
-import com.example.automationlib.exceptions.ClientNotFoundException;
+import com.smirnov.api.entities.Client;
+import com.smirnov.api.entities.Role;
+import com.smirnov.api.exceptions.ClientAlreadyExist;
+import com.smirnov.api.exceptions.ClientBlankNameException;
+import com.smirnov.api.exceptions.ClientIllegalSymbols;
+import com.smirnov.api.exceptions.ClientNotFoundException;
 
-import com.example.automationlib.repositories.ClientsRepository;
-import com.example.automationlib.repositories.RoleRepository;
+import com.smirnov.api.repositories.ClientsRepository;
+import com.smirnov.api.repositories.RoleRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.security.core.userdetails.UserDetails;

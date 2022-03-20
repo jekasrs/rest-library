@@ -1,9 +1,9 @@
 package com.smirnov.api.services;
 
-import com.example.automationlib.entities.Book;
-import com.example.automationlib.entities.TypeBook;
-import com.example.automationlib.exceptions.*;
-import com.example.automationlib.repositories.BooksRepository;
+import com.smirnov.api.entities.Book;
+import com.smirnov.api.entities.TypeBook;
+import com.smirnov.api.exceptions.*;
+import com.smirnov.api.repositories.BooksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
