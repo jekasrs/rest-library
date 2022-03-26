@@ -3,6 +3,7 @@ package com.smirnov.api.entities;
 import lombok.Data;
 
 import javax.persistence.*;
+import java.util.Objects;
 
 @Data
 @Entity
@@ -23,18 +24,6 @@ public class TypeBook {
     private Integer dayCount;
 
     public TypeBook() {}
-
-    public static Boolean isValidData(String name, Double fine, Integer dayCount){
-        return name != null && fine >= 0 && dayCount >= 0;
-    }
-
-    public TypeBook clone(TypeBook typeBook) {
-        setFine    (typeBook.getFine());
-        setCount   (typeBook.getCount());
-        setDayCount(typeBook.getDayCount());
-        setName    (typeBook.getName());
-        return this;
-    }
 
     @Override
     public String toString() {

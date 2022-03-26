@@ -21,3 +21,58 @@ Automation Library API. Java course work
 
 Создать Приложение, позволяющее пользователю взаимодействовать с rest api через команды в консоли или графический
 интерфейс.
+
+
+ABOUT 
+
+1. --------------TypeBook---------------
+
+
+typeBook:
+{
+"id":1,
+"name":"Novel",
+"count":50,
+"fine":10.0,
+"dayCount":14
+}
+
+id       - идентификатор
+name     - название типа
+fine     - штраф за просроченный возврат
+dayCount - кол-во дней бесплатного пользования книгой
+count    - кол-во доступных книг в библиотеке
+
+Допустимо записывать в БД typeBook без fine, dayCount, count. Тогда по умолчанию
+fine=10
+dayCount=10
+count=0
+
+1. запрос к пустой таблице --> "Типа не существует с id = ?"
+2. запрос к несуществующей записи. --> "Типа не существует с id = ?"
+3. добавление типа, который уже есть в системе --> "Тип с названием: Novel уже существует, тип не добавлен."
+4. попытка удалить тип книги, который используется системой --> "Тип нельзя удалить, так как он используется в книгах"
+4. обновить запись в БД c не валидными данным по спецификации -->
+5. невалидные данные для типа:  
+   а. без имени       --> Неправильные значения, тип не добавлен.  
+   b. fine, count < 0 --> Неправильные значения, тип не добавлен.  
+   c. dayCount <= 0   --> Неправильные значения, тип не добавлен.  
+
+POST:
+/api/typebook/  
+
+PUT:  
+/api/typebook/{id}  
+
+GET:
+/api/typebook/{id}  
+/api/typebook/?filter=all  
+/api/typebook/?filter=sorted  
+/api/typebook/?filter=fine_before&fine=  
+/api/typebook/?filter=fine_after&fine=  
+
+DELETE:
+/api/typebook/{id}  
+/api/typebook/?filter=name&name=  
+/api/typebook/?filter=fine&fine=  
+/api/typebook/?filter=count&count=  

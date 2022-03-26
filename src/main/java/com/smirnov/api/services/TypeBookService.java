@@ -2,31 +2,58 @@ package com.smirnov.api.services;
 
 import com.smirnov.api.entities.TypeBook;
 import com.smirnov.api.exceptions.*;
+import com.smirnov.api.repositories.BooksRepository;
 import com.smirnov.api.repositories.TypeBooksRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
+@Transactional(rollbackOn = Exception.class)
 @Service
 public class TypeBookService {
+
     private final TypeBooksRepository typeBooksRepository;
+    private final BooksRepository booksRepository;
+
+    private Boolean isValidData(String name, Double fine, Integer count, Integer dayCount) {
+        boolean isValid = true;
+
+        if (fine == null)
+            fine = 10.0;
+        if (count == null)
+            count = 0;
+        if (dayCount == null)
+            dayCount = 10;
+
+        if (name == null) isValid = false;
+        else {
+            if (fine < 0) isValid = false;
+            if (dayCount <= 0) isValid = false;
+            if (count < 0) isValid = false;
+        }
+
+        return isValid;
+    }
+    private boolean isUnusedTypeBook(TypeBook typeBook){
+        return !booksRepository.existsByTypeBook(typeBook);
+    }
 
     @Autowired
-    public TypeBookService(TypeBooksRepository typeBooksRepository) {
+    public TypeBookService(TypeBooksRepository typeBooksRepository, BooksRepository booksRepository) {
         this.typeBooksRepository = typeBooksRepository;
+        this.booksRepository = booksRepository;
     }
 
     /* CREATE */
-    public TypeBook createTypeBook(TypeBook typeBook) throws TypeBookIllegalSymbols, TypeBookAlreadyExist {
+    public TypeBook createTypeBook(TypeBook typeBook) throws TypeBookIncorrectData, TypeBookAlreadyExist {
 
-        if (typeBook.getFine() == null) typeBook.setFine(0.0); if (typeBook.getCount() == null) typeBook.setCount(0);
-
-        if (!TypeBook.isValidData(typeBook.getName(), typeBook.getFine(), typeBook.getDayCount()))
-            throw new TypeBookIllegalSymbols("Использованы запрещенные символы");
+        if (!isValidData(typeBook.getName(), typeBook.getFine(), typeBook.getDayCount(), typeBook.getCount()))
+            throw new TypeBookIncorrectData("Неправильные значения, тип не добавлен. ");
 
         if (typeBooksRepository.existsByName(typeBook.getName()))
-            throw new TypeBookAlreadyExist("Тип с именем= " + typeBook.getName());
+            throw new TypeBookAlreadyExist("Тип с названием: " + typeBook.getName() + " уже существует, тип не добавлен. ");
 
         return typeBooksRepository.save(typeBook);
     }
@@ -41,9 +68,9 @@ public class TypeBookService {
     public List<TypeBook> findAllTypesBooks() {
         return typeBooksRepository.findAll();
     }
-    public Boolean existByName(String name) throws TypeBookIllegalSymbols {
+    public Boolean existByName(String name) throws TypeBookIncorrectData {
         if (name == null)
-            throw new TypeBookIllegalSymbols("Имя не заполнено");
+            throw new TypeBookIncorrectData("Тип не может быть без названия");
         return typeBooksRepository.existsByName(name);
     }
     public List<TypeBook> findTypeBooksByFineIsAfter(Double fine) {
@@ -59,40 +86,56 @@ public class TypeBookService {
     }
 
     /* UPDATE */
-    public TypeBook updateTypeBook(TypeBook typeBook, Long id) throws TypeBookIllegalSymbols, TypeBookNotFound {
+    public TypeBook updateTypeBook(TypeBook typeBook, Long id) throws TypeBookIncorrectData, TypeBookNotFound {
         if (typeBook.getFine() == null) typeBook.setFine(0.0);
         if (typeBook.getCount() == null) typeBook.setCount(0);
 
-        if (!TypeBook.isValidData(typeBook.getName(), typeBook.getFine(), typeBook.getDayCount()))
-            throw new TypeBookIllegalSymbols("Использованы запрещенные символы");
+        if (isValidData(typeBook.getName(), typeBook.getFine(), typeBook.getDayCount(), typeBook.getCount()))
+            throw new TypeBookIncorrectData("Неправильные значения, тип не обновлен. ");
 
-        if (!typeBooksRepository.existsById(id))
-            throw new TypeBookNotFound("Такого типа не существует: id=" + id);
-        TypeBook newTypeBook = findTypeBookById(id).clone(typeBook);
-        return typeBooksRepository.save(newTypeBook);
+        if (!typeBooksRepository.existsById(id) )
+            throw new TypeBookNotFound("Типа с id: " + id + " не существует, тип не обновлен.");
+
+        TypeBook preTypeBook = findTypeBookById(id);
+        preTypeBook.setCount(typeBook.getCount());
+        preTypeBook.setFine(typeBook.getFine());
+        preTypeBook.setDayCount(typeBook.getDayCount());
+        preTypeBook.setName(typeBook.getName());
+        return typeBooksRepository.save(preTypeBook);
     }
 
     /* DELETE */
-    public void deleteTypeBookById(Long id) throws TypeBookNotFound {
+    public void deleteTypeBookById(Long id) throws TypeBookNotFound, TypeBookDeleteException {
+
         if (!typeBooksRepository.existsById(id))
             throw new TypeBookNotFound("Такого типа не существует: id=" + id);
+
+        TypeBook typeBook = typeBooksRepository.getTypeBookById(id);
+        if (!isUnusedTypeBook(typeBook))
+            throw new TypeBookDeleteException("Тип нельзя удалить, так как он используется в книгах");
+
         typeBooksRepository.deleteById(id);
     }
-    public void deleteTypeBooksByName(String name) throws TypeBookIllegalSymbols, TypeBookNotFound {
-        if (name == null)
-            throw new TypeBookIllegalSymbols("Имя не заполнено");
-        if (!existByName(name))
-            throw new TypeBookNotFound("Такого типа не существует: name=" +  name);
-        typeBooksRepository.deleteTypeBooksByName(name);
+    public void deleteTypeBooksByCountEquals(Integer count) throws TypeBookIncorrectData, TypeBookDeleteException {
+        if (count < 0)
+            throw new TypeBookIncorrectData("Поле \"число книг\" должно быть больше нуля, тип не удален. ");
+
+        List<TypeBook> typeBook = typeBooksRepository.findAllByCount(count);
+        for (TypeBook t :typeBook)
+            if (!isUnusedTypeBook(t))
+                throw new TypeBookDeleteException("Тип нельзя удалить, так как он используется в книгах");
+
+        typeBooksRepository.deleteAllByCount(count);
     }
-    public void deleteTypeBooksByCountEquals(Integer count) throws TypeBookIllegalSymbols {
-        if (count < 0 || count == null)
-            throw new TypeBookIllegalSymbols("Count должен быть больше нуля");
-        typeBooksRepository.deleteTypeBooksByCountEquals(count);
-    }
-    public void deleteTypeBooksByFineEquals(Double fine) throws TypeBookIllegalSymbols {
-        if (fine < 0 || fine == null)
-            throw new TypeBookIllegalSymbols("Fine должен быть больше нуля");
-        typeBooksRepository.deleteTypeBooksByFineEquals(fine);
+    public void deleteTypeBooksByFineEquals(Double fine) throws TypeBookIncorrectData, TypeBookDeleteException {
+        if (fine < 0)
+            throw new TypeBookIncorrectData("Поле \"штраф\" должен быть больше нуля, тип не удален. ");
+
+        List<TypeBook> typeBook = typeBooksRepository.findAllByFine(fine);
+        for (TypeBook t :typeBook)
+            if (!isUnusedTypeBook(t))
+                throw new TypeBookDeleteException("Тип нельзя удалить, так как он используется в книгах");
+
+        typeBooksRepository.deleteAllByFine(fine);
     }
 }

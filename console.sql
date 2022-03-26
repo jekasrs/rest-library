@@ -13,7 +13,7 @@ CREATE TABLE books (
     name     VARCHAR(50) NOT NULL,
     cnt      INT UNSIGNED,
     type_id  INT UNSIGNED,
-    FOREIGN KEY (type_id) REFERENCES BOOK_TYPES (id) ON DELETE CASCADE,
+    FOREIGN KEY (type_id) REFERENCES BOOK_TYPES (id),
     PRIMARY KEY (ID)
 );
 
@@ -34,8 +34,8 @@ CREATE TABLE journal (
     date_beg  TIMESTAMP(6),
     date_end  TIMESTAMP(6),
     date_ret  TIMESTAMP(6),
-    FOREIGN KEY (book_id) REFERENCES books (id) ON DELETE CASCADE,
-    FOREIGN KEY (client_id) REFERENCES clients (id)ON DELETE CASCADE,
+    FOREIGN KEY (book_id) REFERENCES books (id),
+    FOREIGN KEY (client_id) REFERENCES clients (id),
     PRIMARY KEY (id)
 );
 

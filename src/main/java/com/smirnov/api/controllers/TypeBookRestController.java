@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/type-books")
+@RequestMapping("/api/typebook")
 public class TypeBookRestController {
 
     public final TypeBookService typeBookService;
@@ -23,7 +23,7 @@ public class TypeBookRestController {
         try {
             typeBookService.createTypeBook(typeBook);
             return ResponseEntity.ok("Тип успешно добавлен");
-        } catch (TypeBookAlreadyExist | TypeBookIllegalSymbols e) {
+        } catch (TypeBookAlreadyExist | TypeBookIncorrectData e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
@@ -35,7 +35,7 @@ public class TypeBookRestController {
         try {
             typeBookService.updateTypeBook(typeBook, id);
             return ResponseEntity.ok("Тип успешно обновлен");
-        } catch (TypeBookNotFound | TypeBookIllegalSymbols e) {
+        } catch (TypeBookNotFound | TypeBookIncorrectData e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
@@ -53,7 +53,7 @@ public class TypeBookRestController {
         }
     }
 
-    @GetMapping(value = "/filter")
+    @GetMapping(value = "/")
     public ResponseEntity getWithFilter(@RequestParam String filter,
                                         @RequestParam(required = false) Double fine) {
 
@@ -65,9 +65,9 @@ public class TypeBookRestController {
                     return ResponseEntity.ok(typeBookService.findAllTypesBooks());
                 case "sorted":
                     return ResponseEntity.ok(typeBookService.sortByDayCount());
-                case "fine_before":
+                case "fineBefore":
                     return ResponseEntity.ok(typeBookService.findTypeBooksByFineIsBefore(fine));
-                case "fine_after" :
+                case "fineAfter" :
                     return ResponseEntity.ok(typeBookService.findTypeBooksByFineIsAfter(fine));
                 default:
                     throw new FilterNotFound("Не передан параметр поиска");
@@ -83,14 +83,14 @@ public class TypeBookRestController {
         try {
             typeBookService.deleteTypeBookById(id);
             return ResponseEntity.ok("Тип успешно удален");
-        } catch (TypeBookNotFound e) {
+        } catch (TypeBookNotFound | TypeBookDeleteException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
         }
     }
 
-    @DeleteMapping(value = "/filter")
+    @DeleteMapping(value = "/")
     public ResponseEntity deleteWithFilter(@RequestParam String filter,
                                            @RequestParam(required = false) String name,
                                            @RequestParam(required = false) Double fine,
@@ -99,9 +99,6 @@ public class TypeBookRestController {
             if (filter==null)
                 throw new FilterNotFound("Не передан параметр поиска");
             switch (filter) {
-                case "name":
-                    typeBookService.deleteTypeBooksByName(name);
-                    break;
                 case "fine":
                     typeBookService.deleteTypeBooksByFineEquals(fine);
                     break;
@@ -112,7 +109,7 @@ public class TypeBookRestController {
                     throw new FilterNotFound("Не передан параметр поиска");
             }
             return ResponseEntity.ok("типы успешно удалены");
-        } catch (TypeBookNotFound | TypeBookIllegalSymbols e) {
+        } catch (TypeBookIncorrectData | TypeBookDeleteException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
