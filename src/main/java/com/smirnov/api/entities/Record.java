@@ -1,5 +1,6 @@
 package com.smirnov.api.entities;
 
+import com.smirnov.api.models.RecordView;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -17,12 +18,12 @@ public class Record {
     @ManyToOne(optional = false,
             cascade = CascadeType.MERGE)
     @JoinColumn(name = "book_id")
-    private Book bookId;
+    private Book book;
 
     @ManyToOne(optional = false,
             cascade = CascadeType.MERGE)
     @JoinColumn(name = "client_id")
-    private Client clientId;
+    private Client client;
 
     @Column(name = "date_beg")
     private Date dateBegin;
@@ -35,15 +36,11 @@ public class Record {
 
     public Record() {}
 
-    public static Boolean isValidData(Client client, Book book, Date dateBegin, Date dateEnd) {
-        return client != null && book != null && dateBegin != null && dateEnd != null;
-    }
-    public Record clone(Record record) {
-        setBookId(record.getBookId());
-        setClientId(record.getClientId());
-        setDateBegin(record.getDateBegin());
-        setDateEnd(record.getDateEnd());
-        setDateReturn(record.getDateReturn());
-        return this;
+    public Record(RecordView recordView, Client client, Book book) {
+        this.client = client;
+        this.book = book;
+        dateBegin = recordView.getDateBegin();
+        dateEnd = recordView.getDateEnd();
+        dateReturn = recordView.getDateReturn();
     }
 }

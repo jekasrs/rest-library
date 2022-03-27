@@ -65,9 +65,9 @@ public class TypeBookRestController {
                     return ResponseEntity.ok(typeBookService.findAllTypesBooks());
                 case "sorted":
                     return ResponseEntity.ok(typeBookService.sortByDayCount());
-                case "fineBefore":
+                case "fine_before":
                     return ResponseEntity.ok(typeBookService.findTypeBooksByFineIsBefore(fine));
-                case "fineAfter" :
+                case "fine_after" :
                     return ResponseEntity.ok(typeBookService.findTypeBooksByFineIsAfter(fine));
                 default:
                     throw new FilterNotFound("Не передан параметр поиска");
@@ -92,7 +92,6 @@ public class TypeBookRestController {
 
     @DeleteMapping(value = "/")
     public ResponseEntity deleteWithFilter(@RequestParam String filter,
-                                           @RequestParam(required = false) String name,
                                            @RequestParam(required = false) Double fine,
                                            @RequestParam(required = false) Integer count) {
         try {

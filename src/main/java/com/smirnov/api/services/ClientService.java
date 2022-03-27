@@ -1,10 +1,7 @@
 package com.smirnov.api.services;
 
 import com.smirnov.api.entities.Client;
-import com.smirnov.api.entities.TypeBook;
 import com.smirnov.api.exceptions.*;
-
-
 import com.smirnov.api.models.ClientView;
 import com.smirnov.api.repositories.ClientsRepository;
 import com.smirnov.api.repositories.JournalRepository;
@@ -166,7 +163,7 @@ public class ClientService implements UserDetailsService {
         if (!clientsRepository.existsById(id))
             throw new ClientNotFoundException("Пользователя не существует с id: " + id);
 
-        journalRepository.deleteRecordsByClientId(findClientById(id));
+        journalRepository.deleteRecordsByClient(findClientById(id));
         clientsRepository.deleteById(id);
     }
     public void deleteClientsByFirstName(String firstName) throws ClientNotFoundException, ClientIncorrectData {
@@ -177,7 +174,7 @@ public class ClientService implements UserDetailsService {
         List<Client> clients = clientsRepository.findAllByFirstName(firstName);
 
         for (Client c: clients)
-            journalRepository.deleteRecordsByClientId(c);
+            journalRepository.deleteRecordsByClient(c);
 
         clientsRepository.deleteClientsByFirstName(firstName);
     }

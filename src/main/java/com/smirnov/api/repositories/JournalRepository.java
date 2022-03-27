@@ -12,31 +12,31 @@ import java.util.List;
 
 public interface JournalRepository extends JpaRepository<Record, Long> {
 
-    List<Record> findAllByClientId(Client client);
-    List<Record> findAllByBookId(Book book);
+    List<Record> findAllByClient(Client client);
+    List<Record> findAllByBook(Book book);
     Record getRecordById(Long id);
 
-    void deleteRecordsByClientId(Client client);
-    void deleteRecordsByBookId(Book book);
-    void deleteRecordsByDateBeginIsBefore(Date date);
-    void deleteRecordsByClientIdIsNull();
+    void deleteRecordsByClient(Client client);
+    void deleteRecordsByBook(Book book);
+
+    Boolean existsByBook(Book book);
 
     @Query("SELECT r FROM Record AS r ORDER BY r.dateBegin")
     List<Record> sortByDateBegin();
 
-    @Query("SELECT b FROM Book b JOIN Record r ON r.bookId = b AND r.dateReturn IS NULL")
+    @Query("SELECT b FROM Book b JOIN Record r ON r.book = b AND r.dateReturn IS NULL")
     List<Book> findAllBooksNotReturned();
 
-    @Query("SELECT b FROM Book b JOIN Record r ON r.bookId = b AND r.dateReturn IS NULL AND r.dateEnd > CURRENT_DATE")
+    @Query("SELECT b FROM Book b JOIN Record r ON r.book = b AND r.dateReturn IS NULL AND r.dateEnd > CURRENT_DATE")
     List<Book> findAllBooksOverdue();
 
-    @Query("SELECT b FROM Book b JOIN Record r ON r.clientId = ?1 AND r.dateEnd > CURRENT_DATE AND r.dateReturn IS NULL")
+    @Query("SELECT b FROM Book b JOIN Record r ON r.client = ?1 AND r.dateEnd > CURRENT_DATE AND r.dateReturn IS NULL")
     List<Book> findBooksNotReturnedByClient(Client client);
 
-    @Query("SELECT DISTINCT c FROM Client c JOIN Record r ON r.clientId = c")
+    @Query("SELECT DISTINCT c FROM Client c JOIN Record r ON r.client = c")
     List<Client> findAllClientsEverTakenBook();
 
-    @Query("SELECT DISTINCT c FROM Client c JOIN Record r ON r.clientId = c AND r.dateEnd > r.dateReturn")
+    @Query("SELECT DISTINCT c FROM Client c JOIN Record r ON r.client = c AND r.dateEnd > r.dateReturn")
     List<Client> findAllClientsDebtors();
 
 }

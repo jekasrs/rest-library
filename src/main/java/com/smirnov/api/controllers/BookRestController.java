@@ -19,23 +19,18 @@ public class BookRestController {
 
     @PostMapping(value = "/", consumes = {"application/json"})
     public ResponseEntity add(@RequestBody BookView bookView) {
-
-
         try {
             bookService.createBook(bookView);
             return ResponseEntity.ok("Книга успешно добавлена");
         } catch (BookAlreadyExist | TypeBookNotFound | BookIncorrectData | TypeBookIncorrectData e) {
             return ResponseEntity.badRequest().body(e.getMessage());
-
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
         }
-
     }
 
     @PutMapping(value = "/{id}")
     public ResponseEntity update(@RequestBody BookView bookView, @PathVariable Long id) {
-
 
         try {
             bookService.updateBook(bookView, id);
@@ -76,10 +71,6 @@ public class BookRestController {
                     return ResponseEntity.ok(bookService.findBooksByTypeId(typeId));
                 case "count_less":
                     return ResponseEntity.ok(bookService.findBooksByCountIsLessThan(count));
-                case "type_null":
-                    return ResponseEntity.ok(bookService.findBooksByTypeIdIsNull());
-                case "type_not_null":
-                    return ResponseEntity.ok(bookService.findBooksByTypeIdIsNotNull());
                 case "count_equals":
                     return ResponseEntity.ok(bookService.findBooksByCountEquals(count));
                 default:

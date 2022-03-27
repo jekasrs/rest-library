@@ -33,16 +33,16 @@ public class BookService {
     }
 
     private boolean isUnusedBook(Book book) {
-        return !journalRepository.existsByBookId(book);
+        return !journalRepository.existsByBook(book);
     }
 
     /* CREATE */
     public Book createBook(BookView bookView) throws BookAlreadyExist, TypeBookNotFound, TypeBookIncorrectData, BookIncorrectData {
 
+        TypeBook typeBook = typeBookService.findTypeBookById(bookView.getTypeBookId());
+
         if (bookView.getCount() == null)
             bookView.setCount(0);
-
-        TypeBook typeBook = typeBookService.findTypeBookById(bookView.getTypeBookId());
 
         if (!isValidData(bookView.getName(), bookView.getCount()))
             throw new BookIncorrectData("Неправильные значения, книга не добавлена.");
@@ -108,7 +108,7 @@ public class BookService {
         preBook.setCount(bookView.getCount());
         preBook.setTypeBook(typeBook);
 
-        typeBook.setCount(typeBook.getCount()+bookView.getCount());
+        typeBook.setCount(typeBook.getCount()+bookView.getCount()-preBook.getCount());
         typeBookService.updateTypeBook(typeBook, typeBook.getId());
         return booksRepository.save(preBook);
     }

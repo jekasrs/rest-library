@@ -108,8 +108,7 @@ public class ClientRestController {
     @GetMapping(value = "/client/{id}/fine")
     public ResponseEntity getFine(@PathVariable Long id) {
         try {
-            Client client = clientService.findClientById(id);
-            return ResponseEntity.ok(journalService.getFineByClient(client));
+            return ResponseEntity.ok(journalService.getFineByClient(id));
         } catch (ClientNotFoundException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
@@ -151,7 +150,7 @@ public class ClientRestController {
                 throw new FilterNotFound("Не передан параметр поиска");
 
             switch (filter.toLowerCase()) {
-                case "byFirstName":
+                case "by_first_name":
                     clientService.deleteClientsByFirstName(firstName);
                     break;
                 default:
