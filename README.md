@@ -50,20 +50,20 @@ count=0
     * dayCount <= 0   
     > Неправильные значения, тип не добавлен.
 
-####POST:  
+#### POST:  
 /api/typebook/
 
-####PUT:  
+#### PUT:  
 /api/typebook/{id}  
 
-####GET:
+#### GET:
 /api/typebook/{id}  
 /api/typebook/?filter=all  
 /api/typebook/?filter=sorted  
 /api/typebook/?filter=fine_before&fine=  
 /api/typebook/?filter=fine_after&fine=  
 
-####DELETE:
+#### DELETE:
 /api/typebook/{id}  
 /api/typebook/?filter=fine&fine=  
 /api/typebook/?filter=count&count=  
@@ -102,7 +102,7 @@ BookView:
    а. без имени 
    b. typeBookId не существует 
    c. count < 0   
-9. > Неправильные значения, книга не добавлена.
+   > Неправильные значения, книга не добавлена.
    > Типа не существует с id =21. 
 
 #### POST:
@@ -155,14 +155,14 @@ ClientView:
    > Такого клиента с id =? нет.
    > Клиента не существует с id: 11.
 
-####POST:  
+#### POST:  
 /api/client/  
 /api/admin/  
 
-####PUT:  
+#### PUT:  
 /api/client/
 
-####GET:  
+#### GET:  
 /api/client/{id}             
 /api/client/{id}/fullInfo   
 /api/client/?filter=all  
@@ -170,7 +170,7 @@ ClientView:
 /api/client/?filter=full_namesakes&firstName=X&lastName=X  
 /api/client/{id}/fine  
 
-####DELETE:  
+#### DELETE:  
 /api/client/{id}  
 /api/client/?filter=by_first_name&firstName=  
 
@@ -197,13 +197,13 @@ RecordView:
 4. Взять книгу, которой нет в наличии
    > Книг больше нет.
 
-####POST:
+#### POST:
 /api/journal/  
 
-####PUT:
+#### PUT:
 /api/journal/{id}/{date}  
 
-####GET:  
+#### GET:  
 /api/journal/{id}  
 /api/journal/?filter=all  
 /api/journal/?filter=sorted  
@@ -215,7 +215,7 @@ RecordView:
 /api/journal/extraInfo?filter=not_returned  
 /api/journal/extraInfo?filter=not_returned_by_client&clientId=  
 
-####DELETE:  
+#### DELETE:  
 /api/journal/{id}  
 /api/journal/?filter=by_client&clientId=  
 /api/journal/?filter=by_book&bookId=  
