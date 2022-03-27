@@ -10,11 +10,15 @@ import java.util.Optional;
 public interface ClientsRepository extends JpaRepository<Client, Long> {
 
     List<Client> findClientsByFirstNameAndLastName(String firstName, String lastName);
-    List<Client> findClientsByPassportSeriaNullAndPassportNumNull();
+    List<Client> findAllByPassportSeriaAndPassportNum(String passportSeria, String passwordNum);
+    List<Client> findAllByUsername(String username);
+    List<Client> findAllByFirstName(String username);
+
     Client getClientById(Long id);
     Optional<Client> getClientByUsername(String username);
     Boolean existsByFirstName(String name);
     Boolean existsByPassportSeriaAndPassportNum(String passporSeria, String passportNum);
+    Boolean existsByUsername(String name);
 
     @Query("SELECT c FROM Client AS c ORDER BY c.firstName")
     List<Client> sortByFirstName();

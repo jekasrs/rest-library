@@ -34,4 +34,8 @@ public class TypeBook {
                 ", " + dayCount +
                 ']';
     }
+
+    public Boolean equals(TypeBook typeBook){
+        return typeBook.getName().equals(name);
+    }
 }

@@ -1,15 +1,14 @@
 package com.smirnov.api.controllers;
 
-import com.smirnov.api.entities.Book;
-import com.smirnov.api.entities.TypeBook;
 import com.smirnov.api.exceptions.*;
+import com.smirnov.api.models.BookView;
 import com.smirnov.api.services.BookService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/books")
+@RequestMapping("/api/book")
 public class BookRestController {
     public final BookService bookService;
 
@@ -19,27 +18,35 @@ public class BookRestController {
     }
 
     @PostMapping(value = "/", consumes = {"application/json"})
-    public ResponseEntity add(@RequestBody Book book) {
+    public ResponseEntity add(@RequestBody BookView bookView) {
+
+
         try {
-            bookService.createBook(book);
+            bookService.createBook(bookView);
             return ResponseEntity.ok("Книга успешно добавлена");
-        } catch (BookAlreadyExist | BookIllegalSymbols e) {
+        } catch (BookAlreadyExist | TypeBookNotFound | BookIncorrectData | TypeBookIncorrectData e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
         }
+
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity update(@RequestBody Book book, @PathVariable Long id) {
+    public ResponseEntity update(@RequestBody BookView bookView, @PathVariable Long id) {
+
+
         try {
-            bookService.updateBook(book, id);
+            bookService.updateBook(bookView, id);
             return ResponseEntity.ok("Книга успешно обновлена");
-        } catch (BookNotFoundException | BookIllegalSymbols e) {
+        } catch (BookIncorrectData | TypeBookNotFound | BookNotFoundException | TypeBookIncorrectData e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
         }
+
+
     }
 
     @GetMapping(value = "/{id}")
@@ -53,13 +60,12 @@ public class BookRestController {
         }
     }
 
-    @GetMapping(value = "/filter")
+    @GetMapping(value = "/")
     public ResponseEntity getWithFilter(@RequestParam String filter,
-                                        @RequestParam(required = false) TypeBook typeBook,
-                                        @RequestParam(required = false) Integer lessThen,
-                                        @RequestParam(required = false) Integer counNum) {
+                                        @RequestParam(required = false) Long typeId,
+                                        @RequestParam(required = false) Integer count) {
         try {
-            if (filter==null)
+            if (filter == null)
                 throw new FilterNotFound("Не передан параметр поиска");
             switch (filter.toLowerCase()) {
                 case "all":
@@ -67,20 +73,20 @@ public class BookRestController {
                 case "sorted":
                     return ResponseEntity.ok(bookService.sortByCount());
                 case "type":
-                    return ResponseEntity.ok(bookService.findBooksByTypeId(typeBook));
+                    return ResponseEntity.ok(bookService.findBooksByTypeId(typeId));
                 case "count_less":
-                    return ResponseEntity.ok(bookService.findBooksByCountIsLessThan(lessThen));
+                    return ResponseEntity.ok(bookService.findBooksByCountIsLessThan(count));
                 case "type_null":
                     return ResponseEntity.ok(bookService.findBooksByTypeIdIsNull());
                 case "type_not_null":
                     return ResponseEntity.ok(bookService.findBooksByTypeIdIsNotNull());
                 case "count_equals":
-                    return ResponseEntity.ok(bookService.findBooksByCountEquals(counNum));
+                    return ResponseEntity.ok(bookService.findBooksByCountEquals(count));
                 default:
                     throw new FilterNotFound("Не передан параметр поиска");
             }
 
-        } catch (TypeBookIllegalSymbols | FilterNotFound e) {
+        } catch (TypeBookIncorrectData | FilterNotFound e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
@@ -89,39 +95,40 @@ public class BookRestController {
 
     @DeleteMapping(value = "/{id}")
     public ResponseEntity delete(@PathVariable Long id) {
+
         try {
             bookService.deleteBookById(id);
             return ResponseEntity.ok("Удаление книги успешно");
-        } catch (BookNotFoundException e) {
+        } catch (BookNotFoundException | BookDeleteException | TypeBookNotFound | TypeBookIncorrectData e) {
             return ResponseEntity.badRequest().body(e.getMessage());
+
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");
         }
+
     }
 
-    @DeleteMapping(value = "/all-without_type")
+    @DeleteMapping(value = "/")
     public ResponseEntity deleteWithFilter(@RequestParam String filter,
-                                           @RequestParam(required = false) TypeBook typeBook,
+                                           @RequestParam(required = false) Long typeId,
                                            @RequestParam(required = false) String name) {
         try {
-            if (filter==null)
+            if (filter == null)
                 throw new FilterNotFound("Не передан параметр поиска");
+
             switch (filter.toLowerCase()) {
-                case "namesakes":
+                case "name":
                     bookService.deleteBooksByName(name);
                     break;
                 case "type":
-                    bookService.deleteBooksByTypeId(typeBook);
-                    break;
-                case "type_null":
-                    bookService.deleteBooksByTypeIdIsNull();
+                    bookService.deleteBooksByTypeId(typeId);
                     break;
                 default:
                     throw new FilterNotFound("Не передан параметр поиска");
             }
-
             return ResponseEntity.ok("Книги успешно удалены");
-        } catch (BookIllegalSymbols | TypeBookIllegalSymbols | FilterNotFound e) {
+
+        } catch (FilterNotFound | TypeBookIncorrectData | BookDeleteException | TypeBookNotFound e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Неизвестная ошибка");

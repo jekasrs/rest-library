@@ -1,5 +1,6 @@
 package com.smirnov.api.entities;
 
+import com.smirnov.api.models.BookView;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -23,22 +24,18 @@ public class Book {
     @ManyToOne (optional=false,
             cascade=CascadeType.MERGE)
     @JoinColumn(name = "type_id")
-    private TypeBook typeId;
+    private TypeBook typeBook;
 
     public Book() {}
 
-    public static Boolean iValidData(String name, Integer count, TypeBook typeId) {
-        return name != null && count >= 0 && typeId != null;
-    }
-    public Book clone(Book book){
-        setCount(book.getCount());
-        setName(book.getName());
-        setTypeId(book.getTypeId());
-        return this;
+    public Book(BookView bookView, TypeBook typeBook){
+        name = bookView.getName();
+        count = bookView.getCount();
+        this.typeBook = typeBook;
     }
 
     @Override
     public String toString() {
-        return "Book[" + id + ", " + name + " " + count + ", " + typeId + "]\n";
+        return "Book[" + id + ", " + name + " " + count + ", " + typeBook + "]\n";
     }
 }

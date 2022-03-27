@@ -5,7 +5,6 @@ import org.springframework.security.core.GrantedAuthority;
 import javax.persistence.*;
 import java.util.Set;
 
-
 @Entity
 @Table(name = "role")
 public class Role implements GrantedAuthority {
@@ -15,13 +14,11 @@ public class Role implements GrantedAuthority {
     @Transient
     @ManyToMany(mappedBy = "roles")
     private Set<Client> clients;
-    public Role() {
-    }
 
+    public Role() {}
     public Role(Long id) {
         this.id = id;
     }
-
     public Role(Long id, String name) {
         this.id = id;
         this.name = name;

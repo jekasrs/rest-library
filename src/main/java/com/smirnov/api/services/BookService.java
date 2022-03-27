@@ -3,66 +3,89 @@ package com.smirnov.api.services;
 import com.smirnov.api.entities.Book;
 import com.smirnov.api.entities.TypeBook;
 import com.smirnov.api.exceptions.*;
+import com.smirnov.api.models.BookView;
 import com.smirnov.api.repositories.BooksRepository;
+import com.smirnov.api.repositories.JournalRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.transaction.Transactional;
 import java.util.List;
 
+@Transactional
 @Service
 public class BookService {
     private final BooksRepository booksRepository;
     private final TypeBookService typeBookService;
+    private final JournalRepository journalRepository;
 
     @Autowired
-    public BookService(BooksRepository booksRepository, TypeBookService typeBookService) {
+    public BookService(BooksRepository booksRepository,
+                       TypeBookService typeBookService,
+                       JournalRepository journalRepository) {
         this.booksRepository = booksRepository;
         this.typeBookService = typeBookService;
+        this.journalRepository = journalRepository;
+    }
+
+    private boolean isValidData(String name, Integer count) {
+        return name != null && count >= 0;
+    }
+
+    private boolean isUnusedBook(Book book) {
+        return !journalRepository.existsByBookId(book);
     }
 
     /* CREATE */
-    public Book createBook(Book book) throws BookIllegalSymbols, BookAlreadyExist {
+    public Book createBook(BookView bookView) throws BookAlreadyExist, TypeBookNotFound, TypeBookIncorrectData, BookIncorrectData {
 
-        if (book.getCount() == null)
-            book.setCount(0);
+        if (bookView.getCount() == null)
+            bookView.setCount(0);
 
-        if (!Book.iValidData(book.getName(), book.getCount(), book.getTypeId()))
-            throw new BookIllegalSymbols("Использованы запрещенные символы");
+        TypeBook typeBook = typeBookService.findTypeBookById(bookView.getTypeBookId());
 
-        if (booksRepository.existsByName(book.getName()) && booksRepository.existsByTypeId(book.getTypeId()))
-            throw new BookAlreadyExist("Пользователь с такими паспортными данными уже существует");
+        if (!isValidData(bookView.getName(), bookView.getCount()))
+            throw new BookIncorrectData("Неправильные значения, книга не добавлена.");
 
-        return booksRepository.save(book);
+        List<Book> books = booksRepository.findBooksByName(bookView.getName());
+        for (Book b : books)
+            if (b.getTypeBook().equals(typeBook))
+                throw new BookAlreadyExist("Книга " + bookView.getName() + " уже существует c таким типом");
+
+        typeBook.setCount(typeBook.getCount()+bookView.getCount());
+        typeBookService.updateTypeBook(typeBook, typeBook.getId());
+        return booksRepository.save(new Book(bookView, typeBook));
     }
 
     /* READ */
     public Book findBookById(Long id) throws BookNotFoundException {
         if (!booksRepository.existsById(id))
-            throw new BookNotFoundException("Такого клиента не существует");
+            throw new BookNotFoundException("Такой книги с id =" + id);
         return booksRepository.getBookById(id);
     }
     public List<Book> findAllBooks() {
         return booksRepository.findAll();
     }
-    public List<Book> findBooksByTypeId(TypeBook typeBook) throws TypeBookIllegalSymbols {
-        typeBookService.existByName(typeBook.getName());
-        return booksRepository.findBooksByTypeId(typeBook);
+    public List<Book> findBooksByTypeId(Long typeBookId) throws TypeBookIncorrectData, TypeBookNotFound {
+        TypeBook typeBook = typeBookService.findTypeBookById(typeBookId);
+        return booksRepository.findBooksByTypeBook(typeBook);
     }
     public List<Book> findBooksByCountIsLessThan(Integer lessThen) {
         return booksRepository.findBooksByCountIsLessThan(lessThen);
     }
     public List<Book> findBooksByTypeIdIsNull() {
-        return booksRepository.findBooksByTypeIdIsNull();
+        return booksRepository.findBooksByTypeBookIsNull();
     }
     public List<Book> findBooksByTypeIdIsNotNull() {
-        return booksRepository.findBooksByTypeIdIsNotNull();
+        return booksRepository.findBooksByTypeBookIsNotNull();
     }
     public List<Book> findBooksByCountEquals(Integer countNum) {
         return booksRepository.findBooksByCountEquals(countNum);
     }
-    public Boolean existByName(String name) throws BookIllegalSymbols {
+
+    public Boolean existByName(String name) throws BookIncorrectData {
         if (name == null)
-            throw new BookIllegalSymbols("Имя не заполнено");
+            throw new BookIncorrectData("Книга не может быть без названия");
         return booksRepository.existsByName(name);
     }
 
@@ -72,35 +95,59 @@ public class BookService {
     }
 
     /* UPDATE */
-    public Book updateBook(Book book, Long id) throws BookIllegalSymbols, BookNotFoundException {
-        if (book.getCount() == null)
-            book.setCount(0);
-
-        if (!Book.iValidData(book.getName(), book.getCount(), book.getTypeId()))
-            throw new BookIllegalSymbols("Использованы запрещенные символы");
+    public Book updateBook(BookView bookView, Long id) throws BookIncorrectData, BookNotFoundException, TypeBookNotFound, TypeBookIncorrectData {
+        if (!isValidData(bookView.getName(), bookView.getCount()))
+            throw new BookIncorrectData("Неправильные значения, книга не обновлена. ");
 
         if (!booksRepository.existsById(id))
-            throw new BookNotFoundException("Такой книги не существует: id=" + id);
-        Book newBook = findBookById(id).clone(book);
-        return booksRepository.save(newBook);
+            throw new BookNotFoundException("Книга с id: " + id + " не существует, тип не обновлен.");
+        TypeBook typeBook = typeBookService.findTypeBookById(bookView.getTypeBookId());
+
+        Book preBook = findBookById(id);
+        preBook.setName(bookView.getName());
+        preBook.setCount(bookView.getCount());
+        preBook.setTypeBook(typeBook);
+
+        typeBook.setCount(typeBook.getCount()+bookView.getCount());
+        typeBookService.updateTypeBook(typeBook, typeBook.getId());
+        return booksRepository.save(preBook);
     }
 
     /* DELETE */
-    public void deleteBookById(Long id) throws BookNotFoundException {
+    public void deleteBookById(Long id) throws BookNotFoundException, BookDeleteException, TypeBookNotFound, TypeBookIncorrectData {
         if (!booksRepository.existsById(id))
-            throw new BookNotFoundException("Такой книги не существует: id=" + id);
+            throw new BookNotFoundException("Такой книги не существует c id: " + id);
+        Book book = booksRepository.getBookById(id);
+        if (!isUnusedBook(book))
+            throw new BookDeleteException("Книгу нельзя удалить, так как она используется в журнале");
+        TypeBook typeBook = book.getTypeBook();
+        typeBook.setCount(typeBook.getCount()-book.getCount());
+        typeBookService.updateTypeBook(typeBook, typeBook.getId());
         booksRepository.deleteById(id);
     }
-    public void deleteBooksByTypeIdIsNull() {
-        booksRepository.deleteBooksByTypeIdIsNull();
+    public void deleteBooksByTypeId(Long typeId) throws TypeBookIncorrectData, TypeBookNotFound, BookDeleteException {
+        TypeBook typeBook = typeBookService.findTypeBookById(typeId);
+        List<Book> books = booksRepository.findBooksByTypeBook(typeBook);
+        for (Book b : books) {
+            if (!isUnusedBook(b))
+                throw new BookDeleteException("Книгу нельзя удалить, так как она используется в журнале");
+            typeBook.setCount(typeBook.getCount()-b.getCount());
+            typeBookService.updateTypeBook(typeBook, typeBook.getId());
+        }
+        booksRepository.deleteAllByTypeBook(typeBook);
     }
-    public void deleteBooksByTypeId(TypeBook typeBook) throws TypeBookIllegalSymbols {
-        typeBookService.existByName(typeBook.getName());
-        booksRepository.deleteBooksByTypeId(typeBook);
-    }
-    public void deleteBooksByName(String name) throws BookIllegalSymbols {
+    public void deleteBooksByName(String name) throws BookIncorrectData, BookDeleteException, TypeBookNotFound, TypeBookIncorrectData {
         if (name == null)
-            throw new BookIllegalSymbols("Имя не заполнено");
-        booksRepository.deleteBooksByName(name);
+            throw new BookIncorrectData("Книга не может быть без названия");
+
+        List<Book> books = booksRepository.findBooksByName(name);
+        for (Book b : books) {
+            if (!isUnusedBook(b))
+                throw new BookDeleteException("Книгу нельзя удалить, так как она используется в журнале");
+            TypeBook t = b.getTypeBook();
+            t.setCount(t.getCount()-b.getCount());
+            typeBookService.updateTypeBook(t, t.getId());
+        }
+        booksRepository.deleteAllByName(name);
     }
 }

@@ -17,21 +17,20 @@ public class TypeBookService {
     private final TypeBooksRepository typeBooksRepository;
     private final BooksRepository booksRepository;
 
-    private Boolean isValidData(String name, Double fine, Integer count, Integer dayCount) {
+    private boolean isValidData(TypeBook typeBook) {
         boolean isValid = true;
 
-        if (fine == null)
-            fine = 10.0;
-        if (count == null)
-            count = 0;
-        if (dayCount == null)
-            dayCount = 10;
-
-        if (name == null) isValid = false;
+        if (typeBook.getFine() == null)
+            typeBook.setFine(10.0);
+        if (typeBook.getDayCount() == null)
+            typeBook.setDayCount(10);
+        if (typeBook.getCount()== null)
+            typeBook.setCount(0);
+        if (typeBook.getName() == null) isValid = false;
         else {
-            if (fine < 0) isValid = false;
-            if (dayCount <= 0) isValid = false;
-            if (count < 0) isValid = false;
+            if (typeBook.getFine() < 0) isValid = false;
+            if (typeBook.getDayCount() <= 0) isValid = false;
+            if (typeBook.getCount() < 0) isValid = false;
         }
 
         return isValid;
@@ -49,7 +48,7 @@ public class TypeBookService {
     /* CREATE */
     public TypeBook createTypeBook(TypeBook typeBook) throws TypeBookIncorrectData, TypeBookAlreadyExist {
 
-        if (!isValidData(typeBook.getName(), typeBook.getFine(), typeBook.getDayCount(), typeBook.getCount()))
+        if (!isValidData(typeBook))
             throw new TypeBookIncorrectData("Неправильные значения, тип не добавлен. ");
 
         if (typeBooksRepository.existsByName(typeBook.getName()))
@@ -87,10 +86,8 @@ public class TypeBookService {
 
     /* UPDATE */
     public TypeBook updateTypeBook(TypeBook typeBook, Long id) throws TypeBookIncorrectData, TypeBookNotFound {
-        if (typeBook.getFine() == null) typeBook.setFine(0.0);
-        if (typeBook.getCount() == null) typeBook.setCount(0);
 
-        if (isValidData(typeBook.getName(), typeBook.getFine(), typeBook.getDayCount(), typeBook.getCount()))
+        if (!isValidData(typeBook))
             throw new TypeBookIncorrectData("Неправильные значения, тип не обновлен. ");
 
         if (!typeBooksRepository.existsById(id) )
@@ -108,7 +105,7 @@ public class TypeBookService {
     public void deleteTypeBookById(Long id) throws TypeBookNotFound, TypeBookDeleteException {
 
         if (!typeBooksRepository.existsById(id))
-            throw new TypeBookNotFound("Такого типа не существует: id=" + id);
+            throw new TypeBookNotFound("Такого типа не существует id: " + id);
 
         TypeBook typeBook = typeBooksRepository.getTypeBookById(id);
         if (!isUnusedTypeBook(typeBook))

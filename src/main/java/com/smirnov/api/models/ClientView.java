@@ -1,16 +1,11 @@
 package com.smirnov.api.models;
 
 import com.smirnov.api.entities.Client;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class ClientView {
+@Data
+public class ClientView  {
+    private Long id;
     private String username;
     private String password;
     private String firstName;
@@ -19,13 +14,29 @@ public class ClientView {
     private String passportSeria;
     private String passportNum;
 
-    public ClientView(Client client) {
-        username = client.getUsername();
-        password = client.getPassword();
-        firstName = client.getFirstName();
-        lastName = client.getLastName();
-        fatherName = client.getFatherName();
-        passportSeria = client.getPassportSeria();
-        passportNum = client.getPassportNum();
+
+    public static Boolean isForbiddenSymbol(String forbiddenSymbols, char c) {
+        for (int i = 0; i < forbiddenSymbols.length(); i++)
+            if (c == forbiddenSymbols.charAt(i))
+                return true;
+        return false;
+    }
+    public static Boolean isValidName(String name) {
+        String forbiddenSymbols = "1234567890-=><?/.,\\}{[]'";
+        for (int i = 0; i < name.length(); i++)
+            if (isForbiddenSymbol(forbiddenSymbols, name.charAt(i)))
+                return false;
+        return true;
+    }
+    public static Boolean isValidPassport(String string) {
+        String forbiddenSymbols = "-!=><?/.,\\}{[]'";
+        for (int i = 0; i < string.length(); i++) {
+            char c = string.charAt(i);
+            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+                return false;
+            if (isForbiddenSymbol(forbiddenSymbols, c))
+                return false;
+        }
+        return true;
     }
 }
