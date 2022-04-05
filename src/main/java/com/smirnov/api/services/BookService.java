@@ -37,7 +37,7 @@ public class BookService {
     }
 
     /* CREATE */
-    public Book createBook(BookView bookView) throws BookAlreadyExist, TypeBookNotFound, TypeBookIncorrectData, BookIncorrectData {
+    public Book createBook(BookView bookView) throws BookException, TypeBookException {
 
         TypeBook typeBook = typeBookService.findTypeBookById(bookView.getTypeBookId());
 
@@ -45,12 +45,12 @@ public class BookService {
             bookView.setCount(0);
 
         if (!isValidData(bookView.getName(), bookView.getCount()))
-            throw new BookIncorrectData("Неправильные значения, книга не добавлена.");
+            throw new BookException("Неправильные значения, книга не добавлена.");
 
         List<Book> books = booksRepository.findBooksByName(bookView.getName());
         for (Book b : books)
             if (b.getTypeBook().equals(typeBook))
-                throw new BookAlreadyExist("Книга " + bookView.getName() + " уже существует c таким типом");
+                throw new BookException("Книга " + bookView.getName() + " уже существует c таким типом");
 
         typeBook.setCount(typeBook.getCount()+bookView.getCount());
         typeBookService.updateTypeBook(typeBook, typeBook.getId());
@@ -58,15 +58,15 @@ public class BookService {
     }
 
     /* READ */
-    public Book findBookById(Long id) throws BookNotFoundException {
+    public Book findBookById(Long id) throws BookException {
         if (!booksRepository.existsById(id))
-            throw new BookNotFoundException("Такой книги с id =" + id);
+            throw new BookException("Такой книги с id =" + id);
         return booksRepository.getBookById(id);
     }
     public List<Book> findAllBooks() {
         return booksRepository.findAll();
     }
-    public List<Book> findBooksByTypeId(Long typeBookId) throws TypeBookIncorrectData, TypeBookNotFound {
+    public List<Book> findBooksByTypeId(Long typeBookId) throws TypeBookException {
         TypeBook typeBook = typeBookService.findTypeBookById(typeBookId);
         return booksRepository.findBooksByTypeBook(typeBook);
     }
@@ -83,9 +83,9 @@ public class BookService {
         return booksRepository.findBooksByCountEquals(countNum);
     }
 
-    public Boolean existByName(String name) throws BookIncorrectData {
+    public Boolean existByName(String name) throws BookException {
         if (name == null)
-            throw new BookIncorrectData("Книга не может быть без названия");
+            throw new BookException("Книга не может быть без названия");
         return booksRepository.existsByName(name);
     }
 
@@ -95,12 +95,12 @@ public class BookService {
     }
 
     /* UPDATE */
-    public Book updateBook(BookView bookView, Long id) throws BookIncorrectData, BookNotFoundException, TypeBookNotFound, TypeBookIncorrectData {
+    public Book updateBook(BookView bookView, Long id) throws BookException, TypeBookException {
         if (!isValidData(bookView.getName(), bookView.getCount()))
-            throw new BookIncorrectData("Неправильные значения, книга не обновлена. ");
+            throw new BookException("Неправильные значения, книга не обновлена. ");
 
         if (!booksRepository.existsById(id))
-            throw new BookNotFoundException("Книга с id: " + id + " не существует, тип не обновлен.");
+            throw new BookException("Книга с id: " + id + " не существует, тип не обновлен.");
         TypeBook typeBook = typeBookService.findTypeBookById(bookView.getTypeBookId());
 
         Book preBook = findBookById(id);
@@ -114,36 +114,36 @@ public class BookService {
     }
 
     /* DELETE */
-    public void deleteBookById(Long id) throws BookNotFoundException, BookDeleteException, TypeBookNotFound, TypeBookIncorrectData {
+    public void deleteBookById(Long id) throws BookException, TypeBookException {
         if (!booksRepository.existsById(id))
-            throw new BookNotFoundException("Такой книги не существует c id: " + id);
+            throw new BookException("Такой книги не существует c id: " + id);
         Book book = booksRepository.getBookById(id);
         if (!isUnusedBook(book))
-            throw new BookDeleteException("Книгу нельзя удалить, так как она используется в журнале");
+            throw new BookException("Книгу нельзя удалить, так как она используется в журнале");
         TypeBook typeBook = book.getTypeBook();
         typeBook.setCount(typeBook.getCount()-book.getCount());
         typeBookService.updateTypeBook(typeBook, typeBook.getId());
         booksRepository.deleteById(id);
     }
-    public void deleteBooksByTypeId(Long typeId) throws TypeBookIncorrectData, TypeBookNotFound, BookDeleteException {
+    public void deleteBooksByTypeId(Long typeId) throws TypeBookException, BookException {
         TypeBook typeBook = typeBookService.findTypeBookById(typeId);
         List<Book> books = booksRepository.findBooksByTypeBook(typeBook);
         for (Book b : books) {
             if (!isUnusedBook(b))
-                throw new BookDeleteException("Книгу нельзя удалить, так как она используется в журнале");
+                throw new BookException("Книгу нельзя удалить, так как она используется в журнале");
             typeBook.setCount(typeBook.getCount()-b.getCount());
             typeBookService.updateTypeBook(typeBook, typeBook.getId());
         }
         booksRepository.deleteAllByTypeBook(typeBook);
     }
-    public void deleteBooksByName(String name) throws BookIncorrectData, BookDeleteException, TypeBookNotFound, TypeBookIncorrectData {
+    public void deleteBooksByName(String name) throws BookException, TypeBookException {
         if (name == null)
-            throw new BookIncorrectData("Книга не может быть без названия");
+            throw new BookException("Книга не может быть без названия");
 
         List<Book> books = booksRepository.findBooksByName(name);
         for (Book b : books) {
             if (!isUnusedBook(b))
-                throw new BookDeleteException("Книгу нельзя удалить, так как она используется в журнале");
+                throw new BookException("Книгу нельзя удалить, так как она используется в журнале");
             TypeBook t = b.getTypeBook();
             t.setCount(t.getCount()-b.getCount());
             typeBookService.updateTypeBook(t, t.getId());

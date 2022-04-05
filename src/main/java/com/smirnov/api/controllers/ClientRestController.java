@@ -24,143 +24,85 @@ public class ClientRestController {
     }
 
     @PostMapping(value = "/client/", consumes = {"application/json"})
-    public ResponseEntity registration(@RequestBody ClientView clientView) {
-
-        try {
-            clientService.createClient(clientView);
-            return ResponseEntity.ok("Пользователь успешно добавлен");
-        } catch (ClientAlreadyExist | ClientIncorrectData e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
-
+    public ResponseEntity registration(@RequestBody ClientView clientView) throws ClientException {
+        clientService.createClient(clientView);
+        return ResponseEntity.ok("Пользователь успешно добавлен");
     }
 
     @PostMapping(value = "/admin/", consumes = {"application/json"})
-    public ResponseEntity addAdmin(@RequestBody ClientView clientView) {
-
-        try {
-            clientService.createAdmin(clientView);
-            return ResponseEntity.ok("Пользователь успешно добавлен");
-        } catch (ClientAlreadyExist | ClientIncorrectData e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public ResponseEntity addAdmin(@RequestBody ClientView clientView) throws ClientException {
+        clientService.createAdmin(clientView);
+        return ResponseEntity.ok("Пользователь успешно добавлен");
     }
 
     @GetMapping("/client/{id}")
-    public ResponseEntity get(@PathVariable Long id) {
-        try {
-            ClientView client = clientService.findClientViewById(id);
-            return ResponseEntity.ok(client);
-        } catch (ClientNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public ResponseEntity get(@PathVariable Long id) throws ClientException {
+        ClientView client = clientService.findClientViewById(id);
+        return ResponseEntity.ok(client);
     }
 
     @GetMapping("/client/{id}/fullInfo")
-    public ResponseEntity getFullInfo(@PathVariable Long id) {
-
-        try {
-            Client client = clientService.findClientById(id);
-            return ResponseEntity.ok(client);
-        } catch (ClientNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public ResponseEntity getFullInfo(@PathVariable Long id) throws ClientException {
+        Client client = clientService.findClientById(id);
+        return ResponseEntity.ok(client);
     }
 
     @GetMapping("/client/")
     public ResponseEntity getWithFilter(@RequestParam String filter,
                                         @RequestParam(required = false) String firstName,
-                                        @RequestParam(required = false) String lastName) {
-        try {
-            if (filter == null)
-                throw new FilterNotFound("Не передан параметр поиска");
-            List<Client> clientList;
-            switch (filter.toLowerCase()) {
-                case "all":
-                    clientList = clientService.findAllClients();
-                    break;
-                case "sorted":
-                    clientList = clientService.sortByFirstName();
-                    break;
-                case "full_namesakes":
-                    clientList = clientService.findClientsByFirstNameAndLastName(firstName, lastName);
-                    break;
-                default:
-                    throw new FilterNotFound("Не передан параметр поиска");
-            }
-            return ResponseEntity.ok(clientList);
+                                        @RequestParam(required = false) String lastName) throws ClientException {
 
-        } catch (ClientIncorrectData | FilterNotFound e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
+        if (filter == null)
+            throw new ClientException("Не передан параметр поиска");
+        List<Client> clientList;
+        switch (filter.toLowerCase()) {
+            case "all":
+                clientList = clientService.findAllClients();
+                break;
+            case "sorted":
+                clientList = clientService.sortByFirstName();
+                break;
+            case "full_namesakes":
+                clientList = clientService.findClientsByFirstNameAndLastName(firstName, lastName);
+                break;
+            default:
+                throw new ClientException("Не передан параметр поиска");
         }
+        return ResponseEntity.ok(clientList);
+
     }
 
     @GetMapping(value = "/client/{id}/fine")
-    public ResponseEntity getFine(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(journalService.getFineByClient(id));
-        } catch (ClientNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public ResponseEntity getFine(@PathVariable Long id) throws RecordException, ClientException {
+        return ResponseEntity.ok(journalService.getFineByClient(id));
     }
 
     @PutMapping(value = "/client/{id}", consumes = {"application/json"})
-    public ResponseEntity update(@RequestBody ClientView clientView, @PathVariable Long id) {
-        try {
-            clientService.updateClient(clientView, id);
-            return ResponseEntity.ok("Пользователь успешно обновлен");
-        } catch (ClientAlreadyExist | ClientIncorrectData | ClientNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public ResponseEntity update(@RequestBody ClientView clientView, @PathVariable Long id) throws ClientException {
+        clientService.updateClient(clientView, id);
+        return ResponseEntity.ok("Пользователь успешно обновлен");
     }
 
 
     @DeleteMapping(value = "/client/{id}")
-    public ResponseEntity delete(@PathVariable Long id) {
-
-        try {
-            clientService.deleteClientById(id);
-            return ResponseEntity.ok("Клиент успешно удален");
-        } catch (ClientNotFoundException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public ResponseEntity delete(@PathVariable Long id) throws ClientException {
+        clientService.deleteClientById(id);
+        return ResponseEntity.ok("Клиент успешно удален");
     }
 
     @DeleteMapping(value = "/client/")
     public ResponseEntity deleteWithFilter(@RequestParam String filter,
-                                           @RequestParam(required = false) String firstName) {
-        try {
-            if (filter == null)
-                throw new FilterNotFound("Не передан параметр поиска");
+                                           @RequestParam(required = false) String firstName) throws ClientException {
+        if (filter == null)
+            throw new ClientException("Не передан параметр поиска");
 
-            switch (filter.toLowerCase()) {
-                case "by_first_name":
-                    clientService.deleteClientsByFirstName(firstName);
-                    break;
-                default:
-                    throw new FilterNotFound("Не передан параметр поиска");
-            }
-            return ResponseEntity.ok("Пользователи успешно удалены");
-        } catch (ClientNotFoundException | FilterNotFound | ClientIncorrectData e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
+        switch (filter.toLowerCase()) {
+            case "by_first_name":
+                clientService.deleteClientsByFirstName(firstName);
+                break;
+            default:
+                throw new ClientException("Не передан параметр поиска");
         }
+        return ResponseEntity.ok("Пользователи успешно удалены");
     }
 }

@@ -29,45 +29,40 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http
-                .csrf()
-                    .disable()
+//                .cors()
+//                .and()
+                .csrf().disable()
                 .httpBasic()
                 .and()
                 .authorizeRequests()
 
-                .antMatchers(HttpMethod.POST,"/clients/").permitAll()
-                .antMatchers(HttpMethod.POST, "/clients/reg_admin").hasRole("ADMIN")
-                .antMatchers(HttpMethod.PUT, "/clients/**").hasAnyRole("CLIENT", "ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/clients/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.GET, "/clients/full_info/**").hasAnyRole("CLIENT", "ADMIN")
-                .antMatchers(HttpMethod.GET, "/clients/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/**").permitAll()
+                .antMatchers(HttpMethod.PUT, "/api/**").permitAll()
+                .antMatchers(HttpMethod.DELETE, "/api/**").permitAll()
 
-                .antMatchers(HttpMethod.GET, "/type-books/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/type-books/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.PUT, "/type-books/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/type-books/**").hasRole("ADMIN")
-
-                .antMatchers(HttpMethod.GET, "/books/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/books/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.PUT, "/books/**").hasRole("ADMIN")
-                .antMatchers(HttpMethod.DELETE, "/books/**").hasRole("ADMIN")
-
-                .antMatchers(HttpMethod.GET, "/journal/**").hasAnyRole("ADMIN", "CLIENT")
-                .antMatchers(HttpMethod.POST, "/journal/**").hasAnyRole("ADMIN", "CLIENT")
-                .antMatchers(HttpMethod.PUT, "/books/**").hasAnyRole("ADMIN", "CLIENT")
-                .antMatchers(HttpMethod.DELETE, "/books/**").hasAnyRole("ADMIN", "CLIENT")
-
+                .antMatchers("/").permitAll()
                 .anyRequest()
-                    .authenticated()
+                .authenticated()
                 .and()
                 .formLogin()
-                    .disable()
+                .disable()
                 .logout()
-                    .permitAll();
+                .permitAll();
     }
 
     @Autowired
     protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(clientService).passwordEncoder(bCryptPasswordEncoder());
     }
+
+//    @Bean
+//    CorsConfigurationSource corsConfigurationSource() {
+//        CorsConfiguration configuration = new CorsConfiguration();
+//        configuration.setAllowedOrigins(List.of("*"));
+//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT"));
+//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+//        source.registerCorsConfiguration("/**", configuration);
+//        return source;
+//    }
 }

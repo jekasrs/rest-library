@@ -11,6 +11,7 @@ public interface TypeBooksRepository extends JpaRepository<TypeBook, Long> {
 
     Boolean existsByName(String name);
     TypeBook getTypeBookById(Long id);
+    List<TypeBook> getAllByName(String name);
 
     void deleteAllByCount(Integer count);
     void deleteAllByFine(Double fine);

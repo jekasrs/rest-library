@@ -50,16 +50,16 @@ public class ClientService implements UserDetailsService {
     }
 
     /* CREATE */
-    public Client createClient(ClientView clientView) throws ClientAlreadyExist, ClientIncorrectData {
+    public Client createClient(ClientView clientView) throws ClientException {
 
         if (!isValidData(clientView))
-            throw new ClientIncorrectData("Неправильные значения, пользователь не добавлен. ");
+            throw new ClientException("Неправильные значения, пользователь не добавлен. ");
 
         if (clientsRepository.existsByPassportSeriaAndPassportNum(clientView.getPassportSeria(), clientView.getPassportNum()))
-            throw new ClientAlreadyExist("Пользователь с такими паспортными данными уже существует. ");
+            throw new ClientException("Пользователь с такими паспортными данными уже существует. ");
 
         if (clientsRepository.existsByUsername(clientView.getUsername()))
-            throw new ClientAlreadyExist("Логин уже занят. ");
+            throw new ClientException("Логин уже занят. ");
 
         Client client = new Client(clientView);
         client.setPassword(bCryptPasswordEncoder.encode(client.getPassword()));
@@ -68,16 +68,16 @@ public class ClientService implements UserDetailsService {
 
         return clientsRepository.save(client);
     }
-    public Client createAdmin(ClientView clientView) throws ClientAlreadyExist, ClientIncorrectData {
+    public Client createAdmin(ClientView clientView) throws ClientException {
 
         if (!isValidData(clientView))
-            throw new ClientIncorrectData("Неправильные значения, Админ не добавлен. ");
+            throw new ClientException("Неправильные значения, Админ не добавлен. ");
 
         if (clientsRepository.existsByPassportSeriaAndPassportNum(clientView.getPassportSeria(), clientView.getPassportNum()))
-            throw new ClientAlreadyExist("Админ с такими паспортными данными уже существует. ");
+            throw new ClientException("Админ с такими паспортными данными уже существует. ");
 
         if (clientsRepository.existsByUsername(clientView.getUsername()))
-            throw new ClientAlreadyExist("Логин уже занят. ");
+            throw new ClientException("Логин уже занят. ");
 
         Client client = new Client(clientView);
         client.setPassword(bCryptPasswordEncoder.encode(client.getPassword()));
@@ -88,14 +88,14 @@ public class ClientService implements UserDetailsService {
     }
 
     /* READ */
-    public Client findClientById(Long id) throws ClientNotFoundException {
+    public Client findClientById(Long id) throws ClientException {
         if (!clientsRepository.existsById(id))
-            throw new ClientNotFoundException("Пользователя не существует с id: " + id);
+            throw new ClientException("Пользователя не существует с id: " + id);
         return clientsRepository.getClientById(id);
     }
-    public ClientView findClientViewById(Long id) throws ClientNotFoundException {
+    public ClientView findClientViewById(Long id) throws ClientException {
         if (!clientsRepository.existsById(id))
-            throw new ClientNotFoundException("Клиента не существует с id: " + id);
+            throw new ClientException("Клиента не существует с id: " + id);
 
         Client client = clientsRepository.getClientById(id);
         ClientView clientView = new ClientView();
@@ -113,14 +113,14 @@ public class ClientService implements UserDetailsService {
     public List<Client> findAllClients() {
         return clientsRepository.findAll();
     }
-    public List<Client> findClientsByFirstNameAndLastName(String firstName, String lastName) throws ClientIncorrectData {
+    public List<Client> findClientsByFirstNameAndLastName(String firstName, String lastName) throws ClientException {
         if (firstName == null || lastName == null)
-            throw new ClientIncorrectData("Имя или фамилия не заполнены. ");
+            throw new ClientException("Имя или фамилия не заполнены. ");
         return clientsRepository.findClientsByFirstNameAndLastName(firstName, lastName);
     }
-    public Boolean existByFirstName(String name) throws ClientIncorrectData {
+    public Boolean existByFirstName(String name) throws ClientException {
         if (name == null)
-            throw new ClientIncorrectData("Пользователь не может быть без имени");
+            throw new ClientException("Пользователь не может быть без имени");
         return clientsRepository.existsByFirstName(name);
     }
 
@@ -130,22 +130,22 @@ public class ClientService implements UserDetailsService {
     }
 
     /* UPDATE */
-    public Client updateClient(ClientView clientView, Long id) throws ClientAlreadyExist, ClientNotFoundException, ClientIncorrectData {
+    public Client updateClient(ClientView clientView, Long id) throws ClientException {
 
         if (!isValidData(clientView))
-            throw new ClientIncorrectData("Неправильные значения, пользователь не обновлен. ");
+            throw new ClientException("Неправильные значения, пользователь не обновлен. ");
 
         if (!clientsRepository.existsById(id))
-            throw new ClientNotFoundException("Такого пользователя не существует: id=" + id+" пользователь не обновлен. ");
+            throw new ClientException("Такого пользователя не существует: id=" + id+" пользователь не обновлен. ");
 
         Client preClient = findClientById(id);
         List<Client> clients1 = clientsRepository.findAllByPassportSeriaAndPassportNum(preClient.getPassportSeria(), preClient.getPassportNum());
         if (clients1.size()>1)
-            throw new ClientAlreadyExist("Пользователь с такими паспортными данными уже существует, пользователь не обновлен.");
+            throw new ClientException("Пользователь с такими паспортными данными уже существует, пользователь не обновлен.");
 
         List<Client> clients2 = clientsRepository.findAllByUsername(preClient.getUsername());
         if (clients2.size()>1)
-            throw new ClientAlreadyExist("Логин уже занят. ");
+            throw new ClientException("Логин уже занят. ");
 
         preClient.setUsername(clientView.getUsername());
         preClient.setPassword(bCryptPasswordEncoder.encode(clientView.getPassword()));
@@ -159,18 +159,18 @@ public class ClientService implements UserDetailsService {
     }
 
     /* DELETE */
-    public void deleteClientById(Long id) throws ClientNotFoundException {
+    public void deleteClientById(Long id) throws ClientException {
         if (!clientsRepository.existsById(id))
-            throw new ClientNotFoundException("Пользователя не существует с id: " + id);
+            throw new ClientException("Пользователя не существует с id: " + id);
 
         journalRepository.deleteRecordsByClient(findClientById(id));
         clientsRepository.deleteById(id);
     }
-    public void deleteClientsByFirstName(String firstName) throws ClientNotFoundException, ClientIncorrectData {
+    public void deleteClientsByFirstName(String firstName) throws ClientException {
         if (firstName == null)
-            throw new ClientIncorrectData("Пользователь не может быть без имени, удаление не произошло. ");
+            throw new ClientException("Пользователь не может быть без имени, удаление не произошло. ");
         if (!existByFirstName(firstName))
-            throw new ClientNotFoundException("Нет такого клиента с именем: " + firstName+"удаление не произошло. ");
+            throw new ClientException("Нет такого клиента с именем: " + firstName+"удаление не произошло. ");
         List<Client> clients = clientsRepository.findAllByFirstName(firstName);
 
         for (Client c: clients)

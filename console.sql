@@ -1,3 +1,4 @@
+create database library;
 
 CREATE TABLE book_types (
     id        INT UNSIGNED NOT NULL AUTO_INCREMENT ,

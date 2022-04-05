@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.LinkedList;
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/typebook")
 public class TypeBookRestController {
@@ -18,100 +21,67 @@ public class TypeBookRestController {
         this.typeBookService = typeBookService;
     }
 
-    @PostMapping(value = "/", consumes = {"application/json"})
-    public ResponseEntity add(@RequestBody TypeBook typeBook) {
-        try {
-            typeBookService.createTypeBook(typeBook);
-            return ResponseEntity.ok("Тип успешно добавлен");
-        } catch (TypeBookAlreadyExist | TypeBookIncorrectData e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    @PostMapping(value = "/")
+    public TypeBook add(@RequestBody TypeBook typeBook) throws TypeBookException {
+        return typeBookService.createTypeBook(typeBook);
     }
 
-    @PutMapping(value = "/{id}", consumes = {"application/json"})
-    public ResponseEntity update(@RequestBody TypeBook typeBook, @PathVariable Long id) {
-        try {
-            typeBookService.updateTypeBook(typeBook, id);
-            return ResponseEntity.ok("Тип успешно обновлен");
-        } catch (TypeBookNotFound | TypeBookIncorrectData e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    @PutMapping(value = "/{id}")
+    public TypeBook update(@RequestBody TypeBook typeBook,
+                           @PathVariable Long id) throws TypeBookException {
+        return typeBookService.updateTypeBook(typeBook, id);
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity get(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(typeBookService.findTypeBookById(id));
-        } catch (TypeBookNotFound e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public List<TypeBook> get(@PathVariable Long id) throws TypeBookException {
+        List<TypeBook> tmp = new LinkedList<>();
+        tmp.add(typeBookService.findTypeBookById(id));
+        return tmp;
     }
 
     @GetMapping(value = "/")
-    public ResponseEntity getWithFilter(@RequestParam String filter,
-                                        @RequestParam(required = false) Double fine) {
+    public List<TypeBook> getWithFilter(@RequestParam String filter,
+                                        @RequestParam(required = false) Double fine,
+                                        @RequestParam(required = false) String name) throws TypeBookException {
+        if (filter == null)
+            throw new TypeBookException("Не передан параметр поиска");
 
-        try {
-            if (filter==null)
-                throw new FilterNotFound("Не передан параметр поиска");
-            switch (filter.toLowerCase()){
-                case "all":
-                    return ResponseEntity.ok(typeBookService.findAllTypesBooks());
-                case "sorted":
-                    return ResponseEntity.ok(typeBookService.sortByDayCount());
-                case "fine_before":
-                    return ResponseEntity.ok(typeBookService.findTypeBooksByFineIsBefore(fine));
-                case "fine_after" :
-                    return ResponseEntity.ok(typeBookService.findTypeBooksByFineIsAfter(fine));
-                default:
-                    throw new FilterNotFound("Не передан параметр поиска");
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
+        switch (filter.toLowerCase()) {
+            case "all":
+                return typeBookService.findAllTypesBooks();
+            case "sorted":
+                return typeBookService.sortByDayCount();
+            case "fine_before":
+                return typeBookService.findTypeBooksByFineIsBefore(fine);
+            case "fine_after":
+                return typeBookService.findTypeBooksByFineIsAfter(fine);
+            case "name":
+                return typeBookService.findTypeBookByName(name);
+            default:
+                throw new TypeBookException("Не передан параметр поиска");
         }
-
     }
 
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity delete(@PathVariable Long id) {
-        try {
-            typeBookService.deleteTypeBookById(id);
-            return ResponseEntity.ok("Тип успешно удален");
-        } catch (TypeBookNotFound | TypeBookDeleteException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
-        }
+    public void delete(@PathVariable Long id) throws TypeBookException {
+        typeBookService.deleteTypeBookById(id);
     }
 
     @DeleteMapping(value = "/")
-    public ResponseEntity deleteWithFilter(@RequestParam String filter,
-                                           @RequestParam(required = false) Double fine,
-                                           @RequestParam(required = false) Integer count) {
-        try {
-            if (filter==null)
-                throw new FilterNotFound("Не передан параметр поиска");
-            switch (filter) {
-                case "fine":
-                    typeBookService.deleteTypeBooksByFineEquals(fine);
-                    break;
-                case "count":
-                    typeBookService.deleteTypeBooksByCountEquals(count);
-                    break;
-                default:
-                    throw new FilterNotFound("Не передан параметр поиска");
-            }
-            return ResponseEntity.ok("типы успешно удалены");
-        } catch (TypeBookIncorrectData | TypeBookDeleteException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Неизвестная ошибка");
+    public void deleteWithFilter(@RequestParam String filter,
+                                 @RequestParam(required = false) Double fine,
+                                 @RequestParam(required = false) Integer count) throws TypeBookException {
+        if (filter == null)
+            throw new TypeBookException("Не передан параметр поиска");
+        switch (filter) {
+            case "fine":
+                typeBookService.deleteTypeBooksByFineEquals(fine);
+                break;
+            case "count":
+                typeBookService.deleteTypeBooksByCountEquals(count);
+                break;
+            default:
+                throw new TypeBookException("Не передан параметр поиска");
         }
     }
 }
