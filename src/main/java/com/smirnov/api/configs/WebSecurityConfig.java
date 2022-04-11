@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -29,40 +30,26 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
 
         http
-//                .cors()
-//                .and()
                 .csrf().disable()
                 .httpBasic()
                 .and()
                 .authorizeRequests()
 
-                .antMatchers(HttpMethod.GET, "/api/**").permitAll()
-                .antMatchers(HttpMethod.POST, "/api/**").permitAll()
-                .antMatchers(HttpMethod.PUT, "/api/**").permitAll()
-                .antMatchers(HttpMethod.DELETE, "/api/**").permitAll()
+                .antMatchers("/resources/static/**").permitAll()
 
-                .antMatchers("/").permitAll()
-                .anyRequest()
-                .authenticated()
+                .antMatchers(HttpMethod.GET, "/api/**").permitAll()
+                .antMatchers(HttpMethod.GET, "/api/client/").permitAll()
+                .antMatchers(HttpMethod.POST, "/api/client/").permitAll()
+
+                .anyRequest().authenticated()
                 .and()
-                .formLogin()
-                .disable()
-                .logout()
-                .permitAll();
+                .formLogin().permitAll()
+                .and()
+                .logout().permitAll();
     }
 
     @Autowired
     protected void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
         auth.userDetailsService(clientService).passwordEncoder(bCryptPasswordEncoder());
     }
-
-//    @Bean
-//    CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        configuration.setAllowedOrigins(List.of("*"));
-//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE", "PUT"));
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
 }

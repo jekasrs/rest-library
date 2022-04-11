@@ -12,6 +12,7 @@ public interface BooksRepository extends JpaRepository<Book, Long> {
     Boolean existsByName(String name);
     Boolean existsByTypeBook(TypeBook typeBook);
     Book getBookById(Long id);
+    List<Book> getAllByName(String name);
 
     @Query("SELECT b FROM Book AS b ORDER BY b.count")
     List<Book> sortByCount();

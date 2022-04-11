@@ -68,24 +68,6 @@ public class ClientService implements UserDetailsService {
 
         return clientsRepository.save(client);
     }
-    public Client createAdmin(ClientView clientView) throws ClientException {
-
-        if (!isValidData(clientView))
-            throw new ClientException("Неправильные значения, Админ не добавлен. ");
-
-        if (clientsRepository.existsByPassportSeriaAndPassportNum(clientView.getPassportSeria(), clientView.getPassportNum()))
-            throw new ClientException("Админ с такими паспортными данными уже существует. ");
-
-        if (clientsRepository.existsByUsername(clientView.getUsername()))
-            throw new ClientException("Логин уже занят. ");
-
-        Client client = new Client(clientView);
-        client.setPassword(bCryptPasswordEncoder.encode(client.getPassword()));
-        client.setRoles(Collections.singleton(roleRepository.getById(2L)));
-        client.setActive(true);
-
-        return clientsRepository.save(client);
-    }
 
     /* READ */
     public Client findClientById(Long id) throws ClientException {
@@ -93,6 +75,7 @@ public class ClientService implements UserDetailsService {
             throw new ClientException("Пользователя не существует с id: " + id);
         return clientsRepository.getClientById(id);
     }
+
     public ClientView findClientViewById(Long id) throws ClientException {
         if (!clientsRepository.existsById(id))
             throw new ClientException("Клиента не существует с id: " + id);
@@ -110,14 +93,17 @@ public class ClientService implements UserDetailsService {
 
         return clientView;
     }
+
     public List<Client> findAllClients() {
         return clientsRepository.findAll();
     }
+
     public List<Client> findClientsByFirstNameAndLastName(String firstName, String lastName) throws ClientException {
         if (firstName == null || lastName == null)
             throw new ClientException("Имя или фамилия не заполнены. ");
         return clientsRepository.findClientsByFirstNameAndLastName(firstName, lastName);
     }
+
     public Boolean existByFirstName(String name) throws ClientException {
         if (name == null)
             throw new ClientException("Пользователь не может быть без имени");
@@ -136,15 +122,15 @@ public class ClientService implements UserDetailsService {
             throw new ClientException("Неправильные значения, пользователь не обновлен. ");
 
         if (!clientsRepository.existsById(id))
-            throw new ClientException("Такого пользователя не существует: id=" + id+" пользователь не обновлен. ");
+            throw new ClientException("Такого пользователя не существует: id=" + id + " пользователь не обновлен. ");
 
         Client preClient = findClientById(id);
         List<Client> clients1 = clientsRepository.findAllByPassportSeriaAndPassportNum(preClient.getPassportSeria(), preClient.getPassportNum());
-        if (clients1.size()>1)
+        if (clients1.size() > 1)
             throw new ClientException("Пользователь с такими паспортными данными уже существует, пользователь не обновлен.");
 
         List<Client> clients2 = clientsRepository.findAllByUsername(preClient.getUsername());
-        if (clients2.size()>1)
+        if (clients2.size() > 1)
             throw new ClientException("Логин уже занят. ");
 
         preClient.setUsername(clientView.getUsername());
@@ -166,14 +152,15 @@ public class ClientService implements UserDetailsService {
         journalRepository.deleteRecordsByClient(findClientById(id));
         clientsRepository.deleteById(id);
     }
+
     public void deleteClientsByFirstName(String firstName) throws ClientException {
         if (firstName == null)
             throw new ClientException("Пользователь не может быть без имени, удаление не произошло. ");
         if (!existByFirstName(firstName))
-            throw new ClientException("Нет такого клиента с именем: " + firstName+"удаление не произошло. ");
+            throw new ClientException("Нет такого клиента с именем: " + firstName + "удаление не произошло. ");
         List<Client> clients = clientsRepository.findAllByFirstName(firstName);
 
-        for (Client c: clients)
+        for (Client c : clients)
             journalRepository.deleteRecordsByClient(c);
 
         clientsRepository.deleteClientsByFirstName(firstName);
@@ -181,6 +168,6 @@ public class ClientService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return clientsRepository.getClientByUsername(username).orElseThrow(() -> new UsernameNotFoundException("user: "+ username + "was not found!"));
+        return clientsRepository.getClientByUsername(username).orElseThrow(() -> new UsernameNotFoundException("user: " + username + "was not found!"));
     }
 }

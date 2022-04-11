@@ -1,11 +1,15 @@
 package com.smirnov.api.controllers;
 
+import com.smirnov.api.entities.Client;
 import com.smirnov.api.exceptions.*;
+import com.smirnov.api.models.BookView;
 import com.smirnov.api.models.RecordView;
+import com.smirnov.api.entities.Record;
 import com.smirnov.api.services.JournalService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -18,66 +22,69 @@ public class JournalRestController {
         this.journalService = journalService;
     }
 
-    @PostMapping(value = "/", consumes = {"application/json"})
-    public ResponseEntity add(@RequestBody RecordView recordView) throws TypeBookException, RecordException, BookException, ClientException {
-        journalService.createRecord(recordView);
-        return ResponseEntity.ok("Запись в журнал успешно добавлена");
+    @PostMapping(value = "/")
+    public Record add(@RequestBody RecordView recordView) throws TypeBookException, RecordException, BookException, ClientException {
+        return journalService.createRecord(recordView);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity update(@RequestBody RecordView record, @PathVariable Long id) throws TypeBookException, RecordException, BookException {
-        journalService.updateRecord(record, id);
-        return ResponseEntity.ok("Запись в журнале успешно обновлена. ");
+    public Record update(@RequestBody RecordView record, @PathVariable Long id) throws TypeBookException, RecordException, BookException {
+        return journalService.updateRecord(record, id);
     }
 
     @GetMapping(value = "/{id}")
-    public ResponseEntity get(@PathVariable Long id) throws RecordException {
-        return ResponseEntity.ok(journalService.findRecordById(id));
+    public List<RecordView> get(@PathVariable Long id) throws RecordException {
+        return journalService.findRecordById(id);
     }
 
     @GetMapping(value = "/")
-    public ResponseEntity getRecordsInfo(@RequestParam String filter,
+    public List<RecordView> getRecordsInfo(@RequestParam String filter,
                                          @RequestParam(required = false) Long clientId,
-                                         @RequestParam(required = false) Long bookId) throws RecordException, ClientException, BookException {
+                                         @RequestParam(required = false) Long bookId) throws RecordException, ClientException {
         switch (filter.toLowerCase()) {
             case "all":
-                return ResponseEntity.ok(journalService.findAllRecords());
+                return journalService.findAllRecords();
             case "sorted":
-                return ResponseEntity.ok(journalService.sortByDateBegin());
+                return journalService.sortByDateBegin();
             case "by_client":
-                return ResponseEntity.ok(journalService.findAllByClientId(clientId));
+                return journalService.findAllByClientId(clientId);
             case "by_book":
-                return ResponseEntity.ok(journalService.findAllByBookId(bookId));
+                return journalService.findAllByBookId(bookId);
             default:
                 throw new RecordException("Не передан параметр поиска");
         }
     }
 
-    @GetMapping(value = "/extraInfo")
-    public ResponseEntity getExtraInfo(@RequestParam String filter,
+    @GetMapping(value = "/extraInfo/books")
+    public List<BookView> getExtraInfo(@RequestParam String filter,
                                        @RequestParam(required = false) Long clientId) throws RecordException, ClientException {
         switch (filter) {
             case "overdue":
-                return ResponseEntity.ok(journalService.findAllBooksOverdue());
+                return journalService.findAllBooksOverdue();
             case "not_returned":
-                return ResponseEntity.ok(journalService.findAllBooksNotReturned());
+                return journalService.findAllBooksNotReturned();
             case "not_returned_by_client":
-                return ResponseEntity.ok(journalService.findBooksNotReturnedByClient(clientId));
-            case "debtors":
-                return ResponseEntity.ok(journalService.findAllClientsDebtors());
+                return journalService.findBooksNotReturnedByClient(clientId);
             default:
                 throw new RecordException("Не передан параметр поиска");
         }
     }
 
+    @GetMapping(value = "/extraInfo/clients")
+    public List<Client> getExtraInfo(@RequestParam String filter) throws RecordException {
+        if ("debtors".equals(filter)) {
+            return journalService.findAllClientsDebtors();
+        }
+        throw new RecordException("Не передан параметр поиска");
+    }
+
     @DeleteMapping(value = "/{id}")
-    public ResponseEntity delete(@PathVariable Long id) throws RecordException {
+    public void delete(@PathVariable Long id) throws RecordException {
         journalService.deleteRecordById(id);
-        return ResponseEntity.ok("Запись из журнала успешно удалена");
     }
 
     @DeleteMapping(value = "/")
-    public ResponseEntity deleteWithFilter(@RequestParam String filter,
+    public void deleteWithFilter(@RequestParam String filter,
                                            @RequestParam(required = false) Long clientId,
                                            @RequestParam(required = false) Long bookId) throws RecordException, ClientException, BookException {
 
@@ -93,7 +100,5 @@ public class JournalRestController {
             default:
                 throw new RecordException("Не передан параметр поиска");
         }
-
-        return ResponseEntity.ok("Пользователи успешно удалены");
     }
 }

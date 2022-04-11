@@ -26,7 +26,9 @@ public class Book {
     @JoinColumn(name = "type_id")
     private TypeBook typeBook;
 
-    public Book() {}
+    public Book() {
+        super();
+    }
 
     public Book(BookView bookView, TypeBook typeBook){
         name = bookView.getName();

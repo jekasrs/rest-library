@@ -1,5 +1,6 @@
 package com.smirnov.api.models;
 
+import com.smirnov.api.entities.Book;
 import lombok.Data;
 
 @Data
@@ -15,4 +16,13 @@ public class BookView {
         this.count = count;
         this.typeBookId = typeBookId;
     }
+
+    public BookView(Book book) {
+        this.id = book.getId();
+        this.name = book.getName();
+        this.count = book.getCount();
+        this.typeBookId = book.getTypeBook().getId();
+    }
+
+    public BookView() {}
 }

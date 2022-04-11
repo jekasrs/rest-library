@@ -2,6 +2,7 @@ package com.smirnov.api.models;
 
 import lombok.Data;
 import java.util.Date;
+import com.smirnov.api.entities.Record;
 
 @Data
 public class RecordView {
@@ -20,4 +21,14 @@ public class RecordView {
         this.dateEnd = dateEnd;
         this.dateReturn = dateReturn;
     }
+
+    public RecordView(Record record) {
+        this.id = record.getId();
+        this.bookId = record.getBook().getId();
+        this.clientId = record.getClient().getId();
+        this.dateBegin = record.getDateBegin();
+        this.dateEnd = record.getDateEnd();
+        this.dateReturn = record.getDateReturn();
+    }
+
 }

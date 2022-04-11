@@ -6,7 +6,6 @@ import com.smirnov.api.models.ClientView;
 import com.smirnov.api.services.ClientService;
 import com.smirnov.api.services.JournalService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,76 +22,55 @@ public class ClientRestController {
         this.journalService = journalService;
     }
 
-    @PostMapping(value = "/client/", consumes = {"application/json"})
-    public ResponseEntity registration(@RequestBody ClientView clientView) throws ClientException {
-        clientService.createClient(clientView);
-        return ResponseEntity.ok("Пользователь успешно добавлен");
-    }
-
-    @PostMapping(value = "/admin/", consumes = {"application/json"})
-    public ResponseEntity addAdmin(@RequestBody ClientView clientView) throws ClientException {
-        clientService.createAdmin(clientView);
-        return ResponseEntity.ok("Пользователь успешно добавлен");
+    @PostMapping(value = "/client/")
+    public Client registration(@RequestBody ClientView clientView) throws ClientException {
+        return clientService.createClient(clientView);
     }
 
     @GetMapping("/client/{id}")
-    public ResponseEntity get(@PathVariable Long id) throws ClientException {
-        ClientView client = clientService.findClientViewById(id);
-        return ResponseEntity.ok(client);
+    public ClientView get(@PathVariable Long id) throws ClientException {
+        return clientService.findClientViewById(id);
     }
 
     @GetMapping("/client/{id}/fullInfo")
-    public ResponseEntity getFullInfo(@PathVariable Long id) throws ClientException {
-        Client client = clientService.findClientById(id);
-        return ResponseEntity.ok(client);
+    public Client getFullInfo(@PathVariable Long id) throws ClientException {
+        return clientService.findClientById(id);
     }
 
     @GetMapping("/client/")
-    public ResponseEntity getWithFilter(@RequestParam String filter,
-                                        @RequestParam(required = false) String firstName,
-                                        @RequestParam(required = false) String lastName) throws ClientException {
+    public List<Client> getWithFilter(@RequestParam String filter,
+                                      @RequestParam(required = false) String firstName,
+                                      @RequestParam(required = false) String lastName) throws ClientException {
 
         if (filter == null)
             throw new ClientException("Не передан параметр поиска");
-        List<Client> clientList;
+
         switch (filter.toLowerCase()) {
             case "all":
-                clientList = clientService.findAllClients();
-                break;
+                return clientService.findAllClients();
             case "sorted":
-                clientList = clientService.sortByFirstName();
-                break;
+                return clientService.sortByFirstName();
             case "full_namesakes":
-                clientList = clientService.findClientsByFirstNameAndLastName(firstName, lastName);
-                break;
+                return clientService.findClientsByFirstNameAndLastName(firstName, lastName);
             default:
                 throw new ClientException("Не передан параметр поиска");
         }
-        return ResponseEntity.ok(clientList);
-
     }
 
-    @GetMapping(value = "/client/{id}/fine")
-    public ResponseEntity getFine(@PathVariable Long id) throws RecordException, ClientException {
-        return ResponseEntity.ok(journalService.getFineByClient(id));
-    }
-
-    @PutMapping(value = "/client/{id}", consumes = {"application/json"})
-    public ResponseEntity update(@RequestBody ClientView clientView, @PathVariable Long id) throws ClientException {
-        clientService.updateClient(clientView, id);
-        return ResponseEntity.ok("Пользователь успешно обновлен");
+    @PutMapping(value = "/client/{id}")
+    public Client update(@RequestBody ClientView clientView, @PathVariable Long id) throws ClientException {
+        return clientService.updateClient(clientView, id);
     }
 
 
     @DeleteMapping(value = "/client/{id}")
-    public ResponseEntity delete(@PathVariable Long id) throws ClientException {
+    public void delete(@PathVariable Long id) throws ClientException {
         clientService.deleteClientById(id);
-        return ResponseEntity.ok("Клиент успешно удален");
     }
 
     @DeleteMapping(value = "/client/")
-    public ResponseEntity deleteWithFilter(@RequestParam String filter,
-                                           @RequestParam(required = false) String firstName) throws ClientException {
+    public void deleteWithFilter(@RequestParam String filter,
+                                 @RequestParam(required = false) String firstName) throws ClientException {
         if (filter == null)
             throw new ClientException("Не передан параметр поиска");
 
@@ -103,6 +81,5 @@ public class ClientRestController {
             default:
                 throw new ClientException("Не передан параметр поиска");
         }
-        return ResponseEntity.ok("Пользователи успешно удалены");
     }
 }

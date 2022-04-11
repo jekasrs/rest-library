@@ -62,6 +62,7 @@ count=0
 /api/typebook/?filter=sorted  
 /api/typebook/?filter=fine_before&fine=  
 /api/typebook/?filter=fine_after&fine=  
+/api/typebook/?filter=name&name=';    
 
 ####DELETE:
 /api/typebook/{id}  
@@ -106,23 +107,24 @@ BookView:
    > Типа не существует с id =21. 
 
 #### POST:
-/api/book/
+/api/book/  
 
 #### PUT:  
-/api/book/{id}
+/api/book/{id}  
 
-#### GET:
-/api/book/{id}
-/api/book/?filter=all
-/api/book/?filter=sorted
-/api/book/?filter=type&typeId=
-/api/book/?filter=count_less&count=
-/api/book/?filter=count_equals&count=
+#### GET:  
+/api/book/{id}  
+/api/book/?filter=all  
+/api/book/?filter=sorted  
+/api/book/?filter=type&typeId=  
+/api/book/?filter=count_less&count=  
+/api/book/?filter=count_equals&count=  
+/api/book/?filter=name&name=  
 
 #### DELETE:
-/api/book/{id}
-/api/book/?filter=name&name=
-/api/book/?filter=type&typeId=
+/api/book/{id}  
+/api/book/?filter=name&name=  
+/api/book/?filter=type&typeId=  
 
 ### 3. Client  
 ClientView:  
@@ -160,7 +162,7 @@ ClientView:
 /api/admin/  
 
 ####PUT:  
-/api/client/
+/api/client/  
 
 ####GET:  
 /api/client/{id}             
@@ -168,13 +170,12 @@ ClientView:
 /api/client/?filter=all  
 /api/client/?filter=sorted  
 /api/client/?filter=full_namesakes&firstName=X&lastName=X  
-/api/client/{id}/fine  
 
-####DELETE:  
+####DELETE:   
 /api/client/{id}  
 /api/client/?filter=by_first_name&firstName=  
 
-### 4. Journal
+### 4. Journal  
 RecordView:  
 {  
 "clientId":1,  
@@ -183,19 +184,19 @@ RecordView:
 "dateEnd": 13.12.13  
 "dateReturn": 14.12.14  
 }  
-
+  
 При добавлении записи, TypeBook.count и Book.count уменьшаются на 1. При возврате книги TypeBook.count и Book.count увеличиваются на 1.
-Запись можно удалить, только есть книга возвращена.
+Запись можно удалить, только есть книга возвращена.  
 
-1. запрос к пустой таблице 
-   > Такой записи не существует id: ?
-2. удалить запись с невозвращенной книги 
-   > Невозможно удалить запись, так как книгу не вернули.
-3. добавить/обновить запись с неправильными полями 
-   > Дата возврата не может быть из будущего: Tue Nov 21 16:28:06 MSK 2023
-   > Не корректные данные. Запись не заполнена до конца.
-4. Взять книгу, которой нет в наличии
-   > Книг больше нет.
+1. запрос к пустой таблице  
+   > Такой записи не существует id: ?  
+2. удалить запись с невозвращенной книги   
+   > Невозможно удалить запись, так как книгу не вернули.  
+3. добавить/обновить запись с неправильными полями   
+   > Дата возврата не может быть из будущего: Tue Nov 21 16:28:06 MSK 2023  
+   > Не корректные данные. Запись не заполнена до конца.  
+4. Взять книгу, которой нет в наличии  
+   > Книг больше нет.  
 
 ####POST:
 /api/journal/  

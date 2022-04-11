@@ -14,7 +14,6 @@ public class ClientView  {
     private String passportSeria;
     private String passportNum;
 
-
     public static Boolean isForbiddenSymbol(String forbiddenSymbols, char c) {
         for (int i = 0; i < forbiddenSymbols.length(); i++)
             if (c == forbiddenSymbols.charAt(i))
