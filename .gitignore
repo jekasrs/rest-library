@@ -36,6 +36,5 @@ out/
 ### VS Code ###
 .vscode/
 
-
-### trash ###
+### Trash ###
 .DS_Store
