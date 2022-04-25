@@ -75,7 +75,6 @@ public class ClientService implements UserDetailsService {
             throw new ClientException("Пользователя не существует с id: " + id);
         return clientsRepository.getClientById(id);
     }
-
     public ClientView findClientViewById(Long id) throws ClientException {
         if (!clientsRepository.existsById(id))
             throw new ClientException("Клиента не существует с id: " + id);
@@ -93,17 +92,14 @@ public class ClientService implements UserDetailsService {
 
         return clientView;
     }
-
     public List<Client> findAllClients() {
         return clientsRepository.findAll();
     }
-
     public List<Client> findClientsByFirstNameAndLastName(String firstName, String lastName) throws ClientException {
         if (firstName == null || lastName == null)
             throw new ClientException("Имя или фамилия не заполнены. ");
         return clientsRepository.findClientsByFirstNameAndLastName(firstName, lastName);
     }
-
     public Boolean existByFirstName(String name) throws ClientException {
         if (name == null)
             throw new ClientException("Пользователь не может быть без имени");
@@ -152,17 +148,13 @@ public class ClientService implements UserDetailsService {
         journalRepository.deleteRecordsByClient(findClientById(id));
         clientsRepository.deleteById(id);
     }
-
     public void deleteClientsByFirstName(String firstName) throws ClientException {
         if (firstName == null)
             throw new ClientException("Пользователь не может быть без имени, удаление не произошло. ");
         if (!existByFirstName(firstName))
             throw new ClientException("Нет такого клиента с именем: " + firstName + "удаление не произошло. ");
         List<Client> clients = clientsRepository.findAllByFirstName(firstName);
-
-        for (Client c : clients)
-            journalRepository.deleteRecordsByClient(c);
-
+        clients.forEach(journalRepository::deleteRecordsByClient);
         clientsRepository.deleteClientsByFirstName(firstName);
     }
 

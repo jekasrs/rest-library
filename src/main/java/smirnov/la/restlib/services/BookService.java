@@ -33,11 +33,9 @@ public class BookService {
     private boolean isValidData(String name, Integer count) {
         return name != null && count >= 0;
     }
-
     private boolean isUnusedBook(Book book) {
         return !journalRepository.existsByBook(book);
     }
-
     private List<BookView> toRepresentativeForm(List<Book> books) {
         List<BookView> l = new LinkedList<>();
         return books.stream()
@@ -57,9 +55,11 @@ public class BookService {
             throw new BookException("Неправильные значения, книга не добавлена.");
 
         List<Book> books = booksRepository.findBooksByName(bookView.getName());
-        for (Book b : books)
-            if (b.getTypeBook().equals(typeBook))
-                throw new BookException("Книга " + bookView.getName() + " уже существует c таким типом");
+        long count = books.stream()
+                .map(Book::getTypeBook)
+                .filter(t -> t.equals(typeBook))
+                .count();
+        if (count > 0) throw new BookException("Книга " + bookView.getName() + " уже существует c таким типом");
 
         typeBook.setCount(typeBook.getCount() + bookView.getCount());
         typeBookService.updateTypeBook(typeBook, typeBook.getId());
@@ -75,38 +75,30 @@ public class BookService {
         list.add(new BookView(b));
         return list;
     }
-
     public List<BookView> findAllBooks() {
         return toRepresentativeForm(booksRepository.findAll());
     }
-
     public List<BookView> findBooksByTypeId(Long typeBookId) throws TypeBookException {
         TypeBook typeBook = typeBookService.findTypeBookById(typeBookId);
         return toRepresentativeForm(booksRepository.findBooksByTypeBook(typeBook));
     }
-
     public List<BookView> findBooksByCountIsLessThan(Integer lessThen) {
         return toRepresentativeForm(booksRepository.findBooksByCountIsLessThan(lessThen));
     }
-
     public List<BookView> findBooksByTypeIdIsNull() {
         return toRepresentativeForm(booksRepository.findBooksByTypeBookIsNull());
     }
-
     public List<BookView> findBooksByTypeIdIsNotNull() {
         return toRepresentativeForm(booksRepository.findBooksByTypeBookIsNotNull());
     }
-
     public List<BookView> findBooksByCountEquals(Integer countNum) {
         return toRepresentativeForm(booksRepository.findBooksByCountEquals(countNum));
     }
-
     public Boolean existByName(String name) throws BookException {
         if (name == null)
             throw new BookException("Книга не может быть без названия");
         return booksRepository.existsByName(name);
     }
-
     public List<BookView> findBookByName(String name) throws BookException {
         if (!existByName(name))
             throw new BookException("Нет такой книги! ");
@@ -149,31 +141,40 @@ public class BookService {
         typeBookService.updateTypeBook(typeBook, typeBook.getId());
         booksRepository.deleteById(id);
     }
-
-    public void deleteBooksByTypeId(Long typeId) throws TypeBookException, BookException {
+    public void deleteBooksByTypeId(Long typeId) throws TypeBookException {
         TypeBook typeBook = typeBookService.findTypeBookById(typeId);
         List<Book> books = booksRepository.findBooksByTypeBook(typeBook);
-        for (Book b : books) {
-            if (!isUnusedBook(b))
-                throw new BookException("Книгу нельзя удалить, так как она используется в журнале");
-            typeBook.setCount(typeBook.getCount() - b.getCount());
-            typeBookService.updateTypeBook(typeBook, typeBook.getId());
-        }
-        booksRepository.deleteAllByTypeBook(typeBook);
-    }
 
+        books.stream()
+                .filter(this::isUnusedBook)
+                .forEach(b -> {
+                            typeBook.setCount(typeBook.getCount() - b.getCount());
+                            try {
+                                typeBookService.updateTypeBook(typeBook, typeBook.getId());
+                                booksRepository.deleteById(b.getId());
+                            } catch (TypeBookException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                );
+    }
     public void deleteBooksByName(String name) throws BookException, TypeBookException {
         if (name == null)
             throw new BookException("Книга не может быть без названия");
 
         List<Book> books = booksRepository.findBooksByName(name);
-        for (Book b : books) {
-            if (!isUnusedBook(b))
-                throw new BookException("Книгу нельзя удалить, так как она используется в журнале");
-            TypeBook t = b.getTypeBook();
-            t.setCount(t.getCount() - b.getCount());
-            typeBookService.updateTypeBook(t, t.getId());
-        }
-        booksRepository.deleteAllByName(name);
+        books.stream()
+                .filter(this::isUnusedBook)
+                .forEach(b -> {
+                    TypeBook t = b.getTypeBook();
+                    t.setCount(t.getCount() - b.getCount());
+                    booksRepository.deleteById(b.getId());
+                    try {
+                        typeBookService.updateTypeBook(t, t.getId());
+                    } catch (TypeBookException e) {
+                        e.printStackTrace();
+                    }
+
+                });
     }
 }

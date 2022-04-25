@@ -3,8 +3,10 @@ package smirnov.la.restlib.models;
 import smirnov.la.restlib.entities.Client;
 import lombok.Data;
 
+import java.util.stream.Stream;
+
 @Data
-public class ClientView  {
+public class ClientView {
     private Long id;
     private String username;
     private String password;
@@ -15,27 +17,28 @@ public class ClientView  {
     private String passportNum;
 
     public static Boolean isForbiddenSymbol(String forbiddenSymbols, char c) {
-        for (int i = 0; i < forbiddenSymbols.length(); i++)
-            if (c == forbiddenSymbols.charAt(i))
-                return true;
-        return false;
+        long count = forbiddenSymbols
+                .chars()
+                .mapToObj(i -> (char)i)
+                .filter(i-> c==i)
+                .count();
+        return count > 0;
     }
     public static Boolean isValidName(String name) {
         String forbiddenSymbols = "1234567890-=><?/.,\\}{[]'";
-        for (int i = 0; i < name.length(); i++)
-            if (isForbiddenSymbol(forbiddenSymbols, name.charAt(i)))
-                return false;
-        return true;
+        long count = name.chars()
+                .mapToObj(i-> (char) i)
+                .filter(i -> isForbiddenSymbol(forbiddenSymbols, i))
+                .count();
+        return count == 0;
     }
-    public static Boolean isValidPassport(String string) {
+    public static Boolean isValidPassport(String passport) {
         String forbiddenSymbols = "-!=><?/.,\\}{[]'";
-        for (int i = 0; i < string.length(); i++) {
-            char c = string.charAt(i);
-            if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
-                return false;
-            if (isForbiddenSymbol(forbiddenSymbols, c))
-                return false;
-        }
-        return true;
+        long count = passport.chars()
+                .mapToObj(i-> (char) i)
+                .filter(i -> (i >= 'a' && i <= 'z') || (i >= 'A' && i <= 'Z'))
+                .filter(i -> isForbiddenSymbol(forbiddenSymbols, i))
+                .count();
+        return count == 0;
     }
 }

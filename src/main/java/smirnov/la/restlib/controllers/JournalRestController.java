@@ -40,7 +40,7 @@ public class JournalRestController {
     @GetMapping(value = "/")
     public List<RecordView> getRecordsInfo(@RequestParam String filter,
                                          @RequestParam(required = false) Long clientId,
-                                         @RequestParam(required = false) Long bookId) throws RecordException, ClientException {
+                                         @RequestParam(required = false) Long bookId) throws RecordException, ClientException, BookException {
         switch (filter.toLowerCase()) {
             case "all":
                 return journalService.findAllRecords();

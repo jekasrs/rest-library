@@ -35,7 +35,6 @@ public class TypeBookService {
 
         return isValid;
     }
-
     private boolean isUnusedTypeBook(TypeBook typeBook) {
         return !booksRepository.existsByTypeBook(typeBook);
     }
@@ -65,25 +64,20 @@ public class TypeBookService {
 
         return typeBooksRepository.getTypeBookById(id);
     }
-
     public List<TypeBook> findAllTypesBooks() {
         return typeBooksRepository.findAll();
     }
-
     public Boolean existByName(String name) throws TypeBookException {
         if (name == null)
             throw new TypeBookException("Тип не может быть без названия");
         return typeBooksRepository.existsByName(name);
     }
-
     public List<TypeBook> findTypeBooksByFineIsAfter(Double fine) {
         return typeBooksRepository.findTypeBooksByFineIsAfter(fine);
     }
-
     public List<TypeBook> findTypeBooksByFineIsBefore(Double fine) {
         return typeBooksRepository.findTypeBooksByFineIsBefore(fine);
     }
-
     public List<TypeBook> findTypeBookByName(String name) throws TypeBookException {
         if (!existByName(name))
             throw new TypeBookException("Нет такого типа))))");
@@ -128,28 +122,22 @@ public class TypeBookService {
 
         typeBooksRepository.deleteById(id);
     }
-
     public void deleteTypeBooksByCountEquals(Integer count) throws TypeBookException {
         if (count < 0)
             throw new TypeBookException("Поле \"число книг\" должно быть больше нуля, тип не удален. ");
 
         List<TypeBook> typeBook = typeBooksRepository.findAllByCount(count);
-        for (TypeBook t : typeBook)
-            if (!isUnusedTypeBook(t))
-                throw new TypeBookException("Тип нельзя удалить, так как он используется в книгах");
-
-        typeBooksRepository.deleteAllByCount(count);
+        typeBook.stream()
+                .filter(this::isUnusedTypeBook)
+                .forEach( t-> typeBooksRepository.deleteById(t.getId()));
     }
-
     public void deleteTypeBooksByFineEquals(Double fine) throws TypeBookException {
         if (fine < 0)
             throw new TypeBookException("Поле \"штраф\" должен быть больше нуля, тип не удален. ");
 
         List<TypeBook> typeBook = typeBooksRepository.findAllByFine(fine);
-        for (TypeBook t : typeBook)
-            if (!isUnusedTypeBook(t))
-                throw new TypeBookException("Тип нельзя удалить, так как он используется в книгах");
-
-        typeBooksRepository.deleteAllByFine(fine);
+        typeBook.stream()
+                .filter(this::isUnusedTypeBook)
+                .forEach(t -> typeBooksRepository.deleteById(t.getId()));
     }
 }

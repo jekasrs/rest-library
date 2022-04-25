@@ -44,7 +44,6 @@ public class JournalService {
     private Boolean isValidData(Client client, Book book, Date dateBegin, Date dateEnd) {
         return client != null && book != null && dateBegin != null && dateEnd != null;
     }
-
     private List<RecordView> toRepresentativeForm(List<Record> records) {
         return records.stream()
                 .map(RecordView::new)
@@ -56,6 +55,8 @@ public class JournalService {
 
         Client client = clientService.findClientById(record.getClientId());
         Optional<Book> optionalBook = booksRepository.findById(record.getBookId());
+        if (optionalBook.isEmpty())
+            throw new BookException("Неизвестная книга. ");
         Book book = optionalBook.get();
         TypeBook typeBook = book.getTypeBook();
 
@@ -69,7 +70,7 @@ public class JournalService {
         if (!isValidData(client, book, record.getDateBegin(), record.getDateEnd()))
             throw new RecordException("Не корректные данные. Запись не заполнена до конца. ");
 
-        if (book.getCount() - 1 <= 0)
+        if (book.getCount() - 1 < 0)
             throw new RecordException("Книг больше нет. ");
 
         typeBook.setCount(typeBook.getCount() - 1);
@@ -91,44 +92,40 @@ public class JournalService {
         list.add(new RecordView(r));
         return list;
     }
-
     public List<RecordView> findAllRecords() {
         return toRepresentativeForm(journalRepository.findAll());
     }
-
     public List<RecordView> findAllByClientId(Long clientId) throws RecordException, ClientException {
         Client client = clientService.findClientById(clientId);
         if (client == null)
             throw new RecordException("Не существует пользователя. ");
         return toRepresentativeForm(journalRepository.findAllByClient(client));
     }
-
-    public List<RecordView> findAllByBookId(Long bookId) throws RecordException {
+    public List<RecordView> findAllByBookId(Long bookId) throws RecordException, BookException {
         Optional<Book> optionalBook = booksRepository.findById(bookId);
+        if (optionalBook.isEmpty())
+            throw new BookException("Неизвестная книга. ");
+
         Book book = optionalBook.get();
 
         if (book == null)
             throw new RecordException("Не существует книги. ");
         return toRepresentativeForm(journalRepository.findAllByBook(book));
     }
-
     public List<BookView> findAllBooksNotReturned() {
         return journalRepository.findAllBooksNotReturned()
                 .stream()
                 .map(BookView::new)
                 .collect(Collectors.toList());
     }
-
     public List<BookView> findAllBooksOverdue() {
         return journalRepository.findAllBooksOverdue().stream()
                 .map(BookView::new)
                 .collect(Collectors.toList());
     }
-
     public List<Client> findAllClientsDebtors() {
         return journalRepository.findAllClientsDebtors();
     }
-
     public List<BookView> findBooksNotReturnedByClient(Long clientId) throws RecordException, ClientException {
         Client client = clientService.findClientById(clientId);
         if (client == null)
@@ -174,31 +171,23 @@ public class JournalService {
 
         journalRepository.deleteById(id);
     }
-
     public void deleteRecordsByClientId(Long clientId) throws RecordException, ClientException {
         Client client = clientService.findClientById(clientId);
         if (client == null)
             throw new RecordException("Не существует клиента. ");
         List<Record> records = journalRepository.findAllByClient(client);
-        for (Record r : records)
-            if (r.getDateReturn() == null)
-                throw new RecordException("Невозможно удалить запись, так как книгу не вернули. ");
-
-        journalRepository.deleteRecordsByClient(client);
+        records.stream()
+                .filter(r -> r.getDateReturn()!=null)
+                .forEach(r -> journalRepository.deleteById(r.getId()));
     }
-
     public void deleteRecordsByBookId(Long bookId) throws RecordException, BookException {
         Optional<Book> optionalBook = booksRepository.findById(bookId);
-        Book book = optionalBook.get();
-        if (book == null)
+        if (optionalBook.isEmpty())
             throw new RecordException("Не существует книги. ");
-
+        Book book = optionalBook.get();
         List<Record> records = journalRepository.findAllByBook(book);
-        for (Record r : records)
-            if (r.getDateReturn() == null)
-                throw new RecordException("Невозможно удалить запись, так как книгу не вернули. ");
-
-        journalRepository.deleteRecordsByBook(book);
-
+        records.stream()
+                .filter(r -> r.getDateReturn()!=null)
+                .forEach(r -> journalRepository.deleteById(r.getId()));
     }
 }

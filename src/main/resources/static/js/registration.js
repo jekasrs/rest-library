@@ -42,7 +42,7 @@ btn_reg.onclick = function () {
             passportSeria='';
             passportNum='';
             setTimeout(function(){
-                window.location.href = 'http://localhost:8081/journal';
+                window.location.href = 'http://localhost:8081/journal.html';
             }, 1000);
         })
         .catch(function () {
