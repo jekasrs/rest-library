@@ -1,5 +1,6 @@
 package smirnov.la.restlib.controllers;
 
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import smirnov.la.restlib.entities.Client;
 import smirnov.la.restlib.exceptions.*;
 import smirnov.la.restlib.models.BookView;
@@ -23,13 +24,14 @@ public class JournalRestController {
     }
 
     @PostMapping(value = "/")
-    public Record add(@RequestBody RecordView recordView) throws TypeBookException, RecordException, BookException, ClientException {
+    public Record add(@RequestBody RecordView recordView, @AuthenticationPrincipal Client client) throws TypeBookException, RecordException, BookException, ClientException {
+        recordView.setClientId(client.getId());
         return journalService.createRecord(recordView);
     }
 
     @PutMapping(value = "/{id}")
-    public Record update(@RequestBody RecordView record, @PathVariable Long id) throws TypeBookException, RecordException, BookException {
-        return journalService.updateRecord(record, id);
+    public Record update(@PathVariable Long id, @AuthenticationPrincipal Client client) throws TypeBookException, RecordException, BookException {
+        return journalService.updateRecord(id, client.getId());
     }
 
     @GetMapping(value = "/{id}")

@@ -85,10 +85,8 @@
                     borrow_link.id = 'get-' + `${data[i].id}`;
 
                     borrow_link.onclick = function () {
-                        var years = prompt('Введите Ваш ID', 0);
-
                         let Record = {
-                            "clientId": years,
+                            "clientId": 0,
                             "bookId": data[i].id,
                             "dateBegin": null,
                             "dateEnd": null,

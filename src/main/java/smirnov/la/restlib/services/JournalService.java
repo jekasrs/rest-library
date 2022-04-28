@@ -13,10 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Transactional
@@ -142,10 +139,13 @@ public class JournalService {
     }
 
     /* UPDATE */
-    public Record updateRecord(RecordView recordView, Long id) throws RecordException, BookException, TypeBookException {
+    public Record updateRecord(Long id, Long clientId) throws RecordException, BookException, TypeBookException {
         Record record = journalRepository.getRecordById(id);
         if (record == null)
             throw new RecordException("Не существующие данные");
+
+        if (!Objects.equals(record.getClient().getId(), clientId))
+            throw new RecordException("Нельзя возвратить чужие книги");
 
         Book book = record.getBook();
         TypeBook typeBook = book.getTypeBook();

@@ -16,6 +16,7 @@ public class Client implements UserDetails {
     @Column(name = "id")
     private Long id;
 
+    @Column(nullable=false, unique = true)
     private String username;
     private String password;
     private Boolean active;
