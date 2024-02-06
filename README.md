@@ -50,24 +50,24 @@ count=0
     * dayCount <= 0   
     > Неправильные значения, тип не добавлен.
 
-####POST:  
-/api/typebook/
+#### POST:  
+- /api/typebook/
 
-####PUT:  
-/api/typebook/{id}  
+#### PUT:  
+- /api/typebook/{id}  
 
-####GET:
-/api/typebook/{id}  
-/api/typebook/?filter=all  
-/api/typebook/?filter=sorted  
-/api/typebook/?filter=fine_before&fine=  
-/api/typebook/?filter=fine_after&fine=  
-/api/typebook/?filter=name&name=';    
+#### GET:
+- /api/typebook/{id}
+- /api/typebook/?filter=all
+- /api/typebook/?filter=sorted
+- /api/typebook/?filter=fine_before&fine=
+- /api/typebook/?filter=fine_after&fine=
+- /api/typebook/?filter=name&name=';    
 
-####DELETE:
-/api/typebook/{id}  
-/api/typebook/?filter=fine&fine=  
-/api/typebook/?filter=count&count=  
+#### DELETE:
+- /api/typebook/{id}
+- /api/typebook/?filter=fine&fine=
+- /api/typebook/?filter=count&count=  
 
 ### 2. Book
 
@@ -107,24 +107,24 @@ BookView:
    > Типа не существует с id =21. 
 
 #### POST:
-/api/book/  
+- /api/book/  
 
 #### PUT:  
-/api/book/{id}  
+- /api/book/{id}  
 
 #### GET:  
-/api/book/{id}  
-/api/book/?filter=all  
-/api/book/?filter=sorted  
-/api/book/?filter=type&typeId=  
-/api/book/?filter=count_less&count=  
-/api/book/?filter=count_equals&count=  
-/api/book/?filter=name&name=  
+- /api/book/{id}
+- /api/book/?filter=all
+- /api/book/?filter=sorted
+- /api/book/?filter=type&typeId=
+- /api/book/?filter=count_less&count=
+- /api/book/?filter=count_equals&count=
+- /api/book/?filter=name&name=  
 
 #### DELETE:
-/api/book/{id}  
-/api/book/?filter=name&name=  
-/api/book/?filter=type&typeId=  
+- /api/book/{id}  
+- /api/book/?filter=name&name=  
+- /api/book/?filter=type&typeId=  
 
 ### 3. Client  
 ClientView:  
@@ -157,23 +157,23 @@ ClientView:
    > Такого клиента с id =? нет.
    > Клиента не существует с id: 11.
 
-####POST:  
-/api/client/  
-/api/admin/  
+#### POST:  
+- /api/client/  
+- /api/admin/  
 
-####PUT:  
-/api/client/  
+#### PUT:  
+- /api/client/  
 
-####GET:  
-/api/client/{id}             
-/api/client/{id}/fullInfo   
-/api/client/?filter=all  
-/api/client/?filter=sorted  
-/api/client/?filter=full_namesakes&firstName=X&lastName=X  
+#### GET:  
+- /api/client/{id}
+- /api/client/{id}/fullInfo
+- /api/client/?filter=all
+- /api/client/?filter=sorted
+- /api/client/?filter=full_namesakes&firstName=X&lastName=X  
 
-####DELETE:   
-/api/client/{id}  
-/api/client/?filter=by_first_name&firstName=  
+#### DELETE:   
+- /api/client/{id}  
+- /api/client/?filter=by_first_name&firstName=  
 
 ### 4. Journal  
 RecordView:  
@@ -198,25 +198,24 @@ RecordView:
 4. Взять книгу, которой нет в наличии  
    > Книг больше нет.  
 
-####POST:
-/api/journal/  
+#### POST:
+- /api/journal/  
 
-####PUT:
-/api/journal/{id}/{date}  
+#### PUT:
+- /api/journal/{id}/{date}  
 
-####GET:  
-/api/journal/{id}  
-/api/journal/?filter=all  
-/api/journal/?filter=sorted  
-/api/journal/?filter=by_client&clientId=  
-/api/journal/?filter=by_book&bookId=  
+#### GET:  
+- /api/journal/{id}
+- /api/journal/?filter=all
+- /api/journal/?filter=sorted
+- /api/journal/?filter=by_client&clientId=
+- /api/journal/?filter=by_book&bookId=
+- /api/journal/extraInfo?filter=overdue
+- /api/journal/extraInfo?filter=debtors
+- /api/journal/extraInfo?filter=not_returned
+- /api/journal/extraInfo?filter=not_returned_by_client&clientId=  
 
-/api/journal/extraInfo?filter=overdue  
-/api/journal/extraInfo?filter=debtors  
-/api/journal/extraInfo?filter=not_returned  
-/api/journal/extraInfo?filter=not_returned_by_client&clientId=  
-
-####DELETE:  
-/api/journal/{id}  
-/api/journal/?filter=by_client&clientId=  
-/api/journal/?filter=by_book&bookId=  
+#### DELETE:  
+- /api/journal/{id}
+- /api/journal/?filter=by_client&clientId=
+- /api/journal/?filter=by_book&bookId=  
